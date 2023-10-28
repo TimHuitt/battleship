@@ -44,7 +44,7 @@
     * Check if computer has ships remaining
       * If not, end game
       * Else end turn
-  - [ ] d. Player Turn
+  - [ ] d. Computer Turn
     * Player board is expanded to fit the right section
     * Computer board shrinks to fit the left section
     * The computer selects a cell on the player board
