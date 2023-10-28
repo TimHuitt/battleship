@@ -1,33 +1,40 @@
 
 # Project: Battleship
-![](./wireframe.png)
+* Initial Style
+![](./wireframe-initial.png)
+* Final Style (if time permits)
+![](./wireframe-final.png)
 ---
 ## Gameplay
 1. **Game Setup**
     * Player selects and places ships
 2. **Player Turn**
     * Player select a cell on the computer board
+        * Player hits or misses enemy ship
 3. **Computer Turn**
     * Computer selects a cell on the player board
+        * Computer hits or misses player ship
 4. **Game End**
     * Game ends when one player has lost all of their battleships
 ---
 ## Psuedocode
 - [ ] 1. **Initialize Game Boards**  <br>
   - [ ] a. **Player**
-    - [ ] 1. Use Board class to set up and render empty player board
-    * Board class:
-        * 
-    - [ ] 2. Use Ships class to create and render player ships in initial player ship container
-    * Destroyer - 2 holes
-    * Submarine - 3 holes
-    * Cruiser - 3 holes
-    * Battleship - 4 holes
-    * Carrier - 5 holes
+    - [ ] 1. Use createCell class to set up and render empty player board
+    * 10 x 10, 100 cells, empty
+    - [ ] 2. Use createCell class to create and render player ships in initial select/place ship container
+    * Destroyer - 2 cells
+    * Submarine - 3 cells
+    * Cruiser - 3 cells
+    * Battleship - 4 cells
+    * Carrier - 5 cells
   - [ ] a. **Computer**
-    - [ ] 1. Create and render computer items
-    * computer header data
-    * 10 x 10 grid, empty
+    - [ ] 1. Create player card
+    * title
+    * ships remaining number
+    * ships remaining graphic
+    - [ ] 2. Use createCell class to create computer board
+    * 10 x 10 grid, 100 cells, empty
 - [ ] 2. **Player Setup**
     - [ ] a. Player selects ship and board position
         * click starting cell
