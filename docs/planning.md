@@ -35,15 +35,15 @@
 ## Schedule
 - [ ] 1. Friday/Saturday - Setup + UI
 
-   - [ ] Project Setup (Github)
-     - [ ] Add planning notes to planning.md
-     - [ ] Create pseudocode.md document in docs folder and link in planning.md
-     - [ ] Create static HTML / CSS / JS boilerplate
+   - [x] Project Setup (Github)
+     - [x] Add planning notes to planning.md
+     - [x] Create pseudocode.md document in docs folder and link in planning.md
+     - [x] Create static HTML / CSS / JS boilerplate
 
-   - [ ] Build primary game board
-     - [ ] Build dynamic elements (headings / labels)
-     - [ ] Build interactive elements (buttons / radios)
-     - [ ] Provide layout CSS
+   - [x] Build primary game board
+     - [x] Build dynamic elements (headings / labels)
+     - [x] Build interactive elements (buttons / radios)
+     - [x] Provide layout CSS
 
    - [ ] Stretch / Planning
      - [ ] Elaborate existing pseudocode to identify changes to the DOM

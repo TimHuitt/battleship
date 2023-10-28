@@ -1,0 +1,211 @@
+* {
+  box-sizing: border-box;
+}
+body {
+  display: flex;
+  margin: 0;
+  background-color: black;
+  width: 100%;
+  height: 100vh;
+  padding: 2%;
+  color: white;
+  font-size: 3vmin;
+  justify-content: center;
+  align-items: center;
+}
+main {
+  display: flex;
+  width: 125vmin;
+  height: 90vmin;
+  flex-direction: row;
+}
+
+
+/* left container */
+
+#left-wrapper {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  width: 30%;
+  height: 100%;
+}
+
+#opponent-data {
+  width: 100%;
+  height: 15%;
+  border: 1px solid white;
+}
+#opponent-profile {
+  display: flex;
+  flex-direction: row;
+  height: 40%;
+  width: 100%;
+}
+#opponent-name {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 40%;
+  height: 100%;
+}
+#opponent-remaining {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 60%;
+  height: 100%;
+  font-size: 2vmin;
+}
+
+#opponent-ships { 
+  width: 100%;
+  height: 60%;
+  font-size: 1.5vmin;
+}
+#opponent-large-ships {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 50%;
+}
+#opponent-carrier {
+  width: 50%;
+  height: 90%;
+  margin-right: 1vmin;
+  border: 1px solid white;
+}
+#opponent-battleship {
+  width: 40%;
+  height: 90%;
+  border: 1px solid white;
+}
+#opponent-small-ships {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 50%;
+}
+#opponent-sub {
+  width: 35%;
+  height: 90%;
+  margin-right: .5vmin;
+  border: 1px solid white;
+}
+#opponent-cruiser {
+  width: 35%;
+  height: 90%;
+  margin-right: .5vmin;
+  border: 1px solid white;
+}
+#opponent-destroyer {
+  width: 23%;
+  height: 90%;
+  border: 1px solid white;
+}
+
+
+#small-board-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 35vmin;
+}
+#opponent-board {
+  display: grid;
+  width: 95%;
+  height: 95%;
+  border: 1px solid white;
+  grid-template-columns: repeat(10, 1fr);
+  grid-template-rows: repeat(10, 1fr);
+}
+.cell {
+  border: 1px solid white;
+  min-height: 0;
+}
+.cell:hover {
+  background-color: #444;
+  border: 5px solid white;
+}
+
+#player-ships-wrapper {
+  flex-direction: column;
+  width: 100%;
+  height: 35%;
+  border: 1px solid white;
+}
+#player-destroyer {
+  width:100%;
+  height: 15%;
+  margin: 1vmin;
+  border: 1px solid white;
+}
+#player-sub{
+  width:100%;
+  height: 15%;
+  margin: 1vmin;
+  border: 1px solid white;
+}
+#player-cruiser{
+  width:100%;
+  height: 15%;
+  margin: 1vmin;
+  border: 1px solid white;
+}
+#player-battleship{
+  width:100%;
+  height: 15%;
+  margin: 1vmin;
+  border: 1px solid white;
+}
+#player-carrier{
+  width:100%;
+  height: 15%;
+  margin: 1vmin;
+  border: 1px solid white;
+}
+
+/* right container */
+
+#right-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 70%;
+  min-width: 70%;
+  height: 100%;
+}
+#large-board-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 90vmin;
+}
+#player-board {
+  display: grid;
+  width: 95%;
+  height: 95%;
+  border: 1px solid white;
+  grid-template-columns: repeat(10, 1fr);
+  grid-template-rows: repeat(10, 1fr);
+}
+
+#player-stats-wrapper {
+  display: none;
+}
+.center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.disable {
+  pointer-events: none;
+  user-select: none;
+}
