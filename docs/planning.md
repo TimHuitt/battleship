@@ -5,6 +5,9 @@
 * Final Style (if time permits)
 ![](./wireframe-final.png)
 ---
+[View Psuedocode](./pseudocode.md)
+
+---
 ## Gameplay
 1. **Game Setup**
     * Player selects and places ships
@@ -17,36 +20,7 @@
 4. **Game End**
     * Game ends when one player has lost all of their battleships
 ---
-## Psuedocode
-- [ ] 1. **Initialize Game Boards**  <br>
-  - [ ] a. **Player**
-    - [ ] 1. Use createCell class to set up and render empty player board
-    * 10 x 10, 100 cells, empty
-    - [ ] 2. Use createCell class to create and render player ships in initial select/place ship container
-    * Destroyer - 2 cells
-    * Submarine - 3 cells
-    * Cruiser - 3 cells
-    * Battleship - 4 cells
-    * Carrier - 5 cells
-  - [ ] a. **Computer**
-    - [ ] 1. Create player card
-    * title
-    * ships remaining number
-    * ships remaining graphic
-    - [ ] 2. Use createCell class to create computer board
-    * 10 x 10 grid, 100 cells, empty
-- [ ] 2. **Player Setup**
-    - [ ] a. Player selects ship and board position
-        * click starting cell
-        * show available positions based on ship
-        * click to confirm
-        * OR; attach ship to mouse
-        * right click to rotate
-        * click cell to place
-    - [ ] b.
-- [ ] 3. <br>
-    - [ ] a.
----
+
 ## Requirements
 - [ ] Render to browser
 - [ ] Win/Loss logic and rendering
@@ -58,7 +32,7 @@
 - [ ] Consistent code structure
 - [ ] Deployed on GitHub Pages
 ---
-Schedule:
+## Schedule
 - [ ] 1. Friday/Saturday - Setup + UI
 
    - [ ] Project Setup (Github)
