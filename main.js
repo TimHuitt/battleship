@@ -1,7 +1,11 @@
 
 
 //*----- constants -----*//
-const playerBoard = []
+// 1 = occupied
+// 0 = empty
+// -1 = hit
+const playerState = {}
+const opponentState = {}
 
 const ships = {
   destroyer: 2,
@@ -51,6 +55,7 @@ class CreateCell {
 init()
 
 function init() {
+  currentPlayer = 'player-board'
   // render player
   renderBoard(playerBoardEl)
   renderPlayerShips()
@@ -74,13 +79,20 @@ function renderPlayerShips() {
   }
 }
 
-function renderBoard(element) {
+function renderBoard(e) {
   row = 97
   currentCol = 1
   for (let i = 1; i <= 100; i++) {
     currentRow = String.fromCharCode(row)
-    const cell = new CreateCell(currentRow + currentCol, 'cell', currentRow + currentCol)
-    element.appendChild(cell.el)
+    let pos = currentRow + currentCol
+    const cell = new CreateCell(pos, 'cell', pos)
+    e.appendChild(cell.el)
+
+    if (e.id === 'player-board') {
+      playerState[pos] = 0
+    } else if (e.id === 'opponent-board') {
+      opponentState[pos] = 0
+    }
     if (!(i % 10)) { 
       row++
       currentCol -= 10
@@ -131,8 +143,6 @@ function handleShipEvent(e) {
 // type: 1/0 = add/remove
 // e = event
 function handleCellHighlights(type, e) {
-  // todo: remove currentPlayer
-  currentPlayer = 'player-board'
   const boardCells = document.querySelectorAll('.cell')
   const currentRow = e.target.id.split('')[0]
   const currentCol = e.target.id.slice(1)
@@ -151,7 +161,6 @@ function handleCellHighlights(type, e) {
             cell.id.split('')[0] !== currentRow) {
               return
         }
-
         cell.classList.add('row-col-highlight')
       }
     })
@@ -162,4 +171,25 @@ function handleCellHighlights(type, e) {
       cell.classList.remove('row-col-highlight')
     })
   }
+}
+setBoardShip('battleship', 'e5', 'e')
+function setBoardShip(ship, cell, direction) {
+  const currentCell = document.querySelector(`#${currentPlayer} #${cell}`)
+  for (let i = 0; i < ships[ship]; i++) {
+    switch (direction) {
+      case 'n':
+        break
+      case 'e':
+        break
+      case 's':
+        break
+      case 'w':
+        break
+    }
+  }
+  currentCell.style.backgroundColor = 'var(--blue)'
+}
+
+function setBoardState(player, cell) {
+
 }

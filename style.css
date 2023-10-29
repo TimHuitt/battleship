@@ -1,5 +1,10 @@
 @import url('https://fonts.googleapis.com/css2?family=Chakra+Petch&display=swap');
+:root {
+  --lightgreen: rgb(2, 127, 2);
+  --darkgreen: rgb(2, 33, 2);
 
+  --blue: rgb(43, 43, 147);
+}
 * {
   box-sizing: border-box;
 }
@@ -138,7 +143,7 @@ main {
   overflow: hidden;
 }
 .cell {
-  border: 1px solid white;
+  border: 1px solid var(--lightgreen);
   min-height: 100%;
   min-width: 2.5vmin;
 }
@@ -150,7 +155,7 @@ main {
   border: 1px solid white;
   min-height: 100%;
   width: 5vmin;
-  background-color: rgb(103, 101, 164);
+  background-color: var(--blue);
   pointer-events: none;
 }
 .over {
@@ -158,7 +163,7 @@ main {
 }
 
 .row-col-highlight {
-  background-color: #222;
+  background-color: var(--darkgreen);
 }
 
 
