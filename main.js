@@ -190,11 +190,11 @@ function renderCellHighlights(type, e) {
 //*----- setters -----*//
 
 
-handleShipPlacement('carrier', 'j5', 'w')
-// handleShipPlacement('battleship', 'b8', 'n')
-// handleShipPlacement('cruiser', 'g4', 's')
-// handleShipPlacement('sub', 'i9', 'w')
-// handleShipPlacement('destroyer', 'f6', 'n')
+handleShipPlacement('carrier', 'b5', 'w')
+handleShipPlacement('battleship', 'f8', 'n')
+handleShipPlacement('cruiser', 'g4', 's')
+handleShipPlacement('sub', 'i9', 'w')
+handleShipPlacement('destroyer', 'f6', 'n')
 
 function handleShipPlacement(ship, cell, direction) {
   const currentCell = document.querySelector(`#${currentPlayer} #${cell}`)
@@ -202,13 +202,15 @@ function handleShipPlacement(ship, cell, direction) {
   let currentCol = parseInt(cell.slice(1))
   let currentChar = currentRow.charCodeAt(0) // a - j: 97 - 106
   let valid = true
+  let cellRange = []
   let nextCellEl
   let nextCell
 
   currentCell.classList.add('placed')
   playerState[cell] = 1
+  cellRange.push(cell)
 
-
+  // check if ship fits within boundries
   if (direction === 'n' && currentChar - ships[ship] + 1 < 97) {
     valid = false
   }
@@ -245,11 +247,13 @@ function handleShipPlacement(ship, cell, direction) {
 
     currentRow = String.fromCharCode(currentChar)
     nextCell = `${currentRow}${currentCol}`
-    nextCellEl = document.querySelector(`#${currentPlayer} #${nextCell}`)
     playerState[nextCell] = 1
+    cellRange.push(nextCell)
+
+    nextCellEl = document.querySelector(`#${currentPlayer} #${nextCell}`)
     nextCellEl.classList.add('placed')
   }
-  console.log(valid)
+  playerState['playerShips'][ship] = cellRange
 }
 
 function setBoardState(player, cell) {

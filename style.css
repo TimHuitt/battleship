@@ -159,7 +159,6 @@ main {
   pointer-events: none;
 }
 .placed {
-
   background-color: var(--blue) !important;
 }
 .over {
