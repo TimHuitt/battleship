@@ -2,18 +2,18 @@
 [Return to Planning](./planning.md)
 
 ---
-- [ ] 1. **Initialize Game**
-  - [ ] a. Player
-    - [ ] 1. Use createCell class to set up and render empty player board
+- [x] 1. **Initialize Game**
+  - [x] a. Player
+    - [x] 1. Use createCell class to set up and render empty player board
     * 10 x 10, 100 cells, empty
-  - [ ] b. Computer
-    - [ ] 1. Create computer card
+  - [x] b. Computer
+    - [x] 1. Create computer card
     * Title
     * Ships remaining number
     * Ships remaining graphic
-    - [ ] 2. Use createCell class to create the computer board
+    - [x] 2. Use createCell class to create the computer board
     * 10 x 10 grid, 100 cells, empty
-  - [ ] c. Save all cells to playerBoard array and computerBoard array
+  - [x] c. Save all cells to playerBoard array and computerBoard array
 ---
 - [ ] 2. **Player Setup**
   - [ ] a. Player selects a ship and position on the board

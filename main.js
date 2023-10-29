@@ -8,12 +8,12 @@
 // -1 = hit
 const playerState = {
   // active ships and their location
-  playerShips: {}
+  ships: {}
 }
 
 // list all opponent cells and thier state
 const opponentState = {
-  opponentShips: {}
+  ships: {}
 }
 
 // list of ship types and their cell length
@@ -28,6 +28,7 @@ const ships = {
 //*----- state variables -----*//
 
 let currentPlayer
+let isWinner
 
 //*----- cached elements  -----*//
 
@@ -66,6 +67,7 @@ init()
 
 function init() {
   currentPlayer = 'player-board'
+  isWinner = false;
   // render player
   renderBoard(playerBoardEl)
   renderPlayerShips()
@@ -190,13 +192,14 @@ function renderCellHighlights(type, e) {
 //*----- setters -----*//
 
 
-handleShipPlacement('carrier', 'b5', 'w')
-handleShipPlacement('battleship', 'f8', 'n')
-handleShipPlacement('cruiser', 'g4', 's')
-handleShipPlacement('sub', 'i9', 'w')
-handleShipPlacement('destroyer', 'f6', 'n')
+setShips('carrier', 'b5', 'w')
+setShips('battleship', 'f8', 'n')
+setShips('cruiser', 'g4', 's')
+setShips('sub', 'i9', 'w')
+setShips('destroyer', 'f6', 'n')
 
-function handleShipPlacement(ship, cell, direction) {
+
+function setShips(ship, cell, direction) {
   const currentCell = document.querySelector(`#${currentPlayer} #${cell}`)
   let currentRow = cell.split('')[0]
   let currentCol = parseInt(cell.slice(1))
@@ -206,8 +209,13 @@ function handleShipPlacement(ship, cell, direction) {
   let nextCellEl
   let nextCell
 
-  currentCell.classList.add('placed')
-  playerState[cell] = 1
+  if (currentPlayer === 'player-board') {
+    currentCell.classList.add('placed')
+    playerState[cell] = 1
+  } else {
+
+  }
+
   cellRange.push(cell)
 
   // check if ship fits within boundries
@@ -247,13 +255,35 @@ function handleShipPlacement(ship, cell, direction) {
 
     currentRow = String.fromCharCode(currentChar)
     nextCell = `${currentRow}${currentCol}`
-    playerState[nextCell] = 1
     cellRange.push(nextCell)
 
-    nextCellEl = document.querySelector(`#${currentPlayer} #${nextCell}`)
-    nextCellEl.classList.add('placed')
+    if (currentPlayer === 'player-board') {
+      playerState[nextCell] = 1
+      nextCellEl = document.querySelector(`#${currentPlayer} #${nextCell}`)
+      nextCellEl.classList.add('placed')
+    } else {
+      opponentState[nextCell] = 1
+    }
+
   }
-  playerState['playerShips'][ship] = cellRange
+  if (currentPlayer === 'player-board') {
+    playerState['ships'][ship] = cellRange
+  } else {
+    opponentState['ships'][ship] = cellRange
+  }
+}
+
+
+currentPlayer = 'opponent-board'
+setComputerBoard()
+currentPlayer = 'player-board'
+
+function setComputerBoard() {
+  setShips('carrier', 'b5', 'w')
+  setShips('battleship', 'f8', 'n')
+  setShips('cruiser', 'g4', 's')
+  setShips('sub', 'i9', 'w')
+  setShips('destroyer', 'f6', 'n')
 }
 
 function setBoardState(player, cell) {
