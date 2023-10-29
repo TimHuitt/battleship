@@ -157,12 +157,16 @@ main {
   background-color: #444;
 }
 
+.row-col-highlight {
+  background-color: #222;
+}
+
 
 #player-ships-wrapper {
   flex-direction: column;
   width: 100%;
   height: 35%;
-  border-radius: .5vmin;
+  border-radius: 1vmin;
   border: 1px solid white;
 }
 #player-destroyer {
