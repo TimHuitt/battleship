@@ -158,6 +158,10 @@ main {
   background-color: var(--blue);
   pointer-events: none;
 }
+.placed {
+
+  background-color: var(--blue) !important;
+}
 .over {
   background-color: #444;
 }
