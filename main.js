@@ -172,22 +172,33 @@ function handleCellHighlights(type, e) {
     })
   }
 }
-setBoardShip('battleship', 'e5', 'e')
-function setBoardShip(ship, cell, direction) {
+
+//*----- setters -----*//
+
+placeShip('sub', 'a5', 'n')
+
+function placeShip(ship, cell, direction) {
   const currentCell = document.querySelector(`#${currentPlayer} #${cell}`)
-  for (let i = 0; i < ships[ship]; i++) {
-    switch (direction) {
-      case 'n':
-        break
-      case 'e':
-        break
-      case 's':
-        break
-      case 'w':
-        break
-    }
-  }
+  let currentRow = cell.split('')[0]
+  let currentCol = parseInt(cell.slice(1))
+  let currentChar = currentRow.charCodeAt(0)
+  let nextCellEl
+  let nextCell
+  let currentLetter
+  
   currentCell.style.backgroundColor = 'var(--blue)'
+
+  for (let i = 0; i < ships[ship] - 1; i++) {
+    if (direction === 'n') currentChar -= 1
+    if (direction === 'e') currentCol += 1
+    if (direction === 's') currentChar += 1
+    if (direction === 'w') currentCol -= 1
+
+    currentRow = String.fromCharCode(currentChar)
+    nextCell = `${currentRow}${currentCol}`
+    nextCellEl = document.querySelector(`#${currentPlayer} #${nextCell}`)
+    nextCellEl.style.backgroundColor = 'var(--blue)'
+  }
 }
 
 function setBoardState(player, cell) {
