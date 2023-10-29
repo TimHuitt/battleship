@@ -153,6 +153,9 @@ main {
   background-color: rgb(103, 101, 164);
   pointer-events: none;
 }
+.over {
+  background-color: #444;
+}
 
 
 #player-ships-wrapper {

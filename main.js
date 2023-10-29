@@ -3,6 +3,14 @@
 /*----- constants -----*/
 const playerBoard = []
 
+const ships = {
+  destroyer: 2,
+  sub: 3,
+  cruiser: 3,
+  battleship: 4,
+  carrier: 5,
+}
+
 /*----- state variables -----*/
 
 
@@ -10,11 +18,15 @@ const playerBoard = []
 
 const opponentBoardEl = document.querySelector("#opponent-board")
 const playerBoardEl = document.querySelector('#player-board')
+const playerShipsEl = document.querySelector('#player-ships-wrapper')
 const playerShips = document.querySelectorAll('#player-ships-wrapper > div')
 
 /*----- event listeners -----*/
 
-playerBoardEl.addEventListener('click', handleClick)
+playerBoardEl.addEventListener('click', handleBoardClick)
+playerShipsEl.addEventListener('click', handleShipEvent)
+playerShipsEl.addEventListener('mouseover', handleShipEvent)
+playerShipsEl.addEventListener('mouseleave', handleShipEvent)
 
 /*----- classes -----*/
 
@@ -41,13 +53,7 @@ function init() {
 }
 
 function renderPlayerShips() {
-  const ships = {
-    destroyer: 2,
-    sub: 3,
-    cruiser: 3,
-    battleship: 4,
-    carrier: 5,
-  }
+  
   let count = 0
   for (const ship in ships) {
     parent = playerShips[count]
@@ -78,6 +84,32 @@ function renderBoard(element) {
   }
 }
 
-function handleClick(e) {
+function handleBoardClick(e) {
   console.log(e.target)
+}
+
+function handleShipEvent(e) {
+  if (!e.target.id.includes('wrapper')) {
+    if (e.type === 'mouseover') {
+
+      clearHighlights()
+
+      const el = document.querySelector(`#${e.target.id}`)
+      el.classList.add('over')
+    }
+    if (e.type === 'click') {
+      console.log(e.target.id)
+    }
+  }
+  if (e.type === 'mouseleave') {
+    console.log('leave')
+    clearHighlights()
+  }
+
+  function clearHighlights() {
+    for (const ship in ships) {
+      const el = document.querySelector(`#player-${ship}`)
+      el.classList.remove('over')
+    }
+  }
 }
