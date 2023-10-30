@@ -17,6 +17,7 @@ const opponentState = {
 }
 
 // list of ship types and their cell length
+// cell length determines all ship geometry
 const ships = {
   destroyer: 2,
   sub: 3,
@@ -333,15 +334,78 @@ function setComputerBoard() {
   }
 }
 
+
+function checkGameState(e) {
+  let gameEnd = false
+  if (activeBoard === 'player-board') {
+    for (let ship in playerState.ships) {
+      if (playerState.ships[ship].includes(e.target.id)) {
+        const isSunk = playerState.ships[ship].every((cell) => playerState[cell] === -1)
+
+        if (isSunk) {
+          return [ship, 'destroyed']
+        }
+        
+        return [ship, 'hit']
+      }
+    }
+  } else {
+    for (let ship in opponentState.ships) {
+      if (opponentState.ships[ship].includes(e.target.id)) {
+        const isSunk = opponentState.ships[ship].every((cell) => opponentState[cell] === -1)
+
+        if (isSunk) {
+          return [ship, 'destroyed']
+        }
+        
+        return [ship, 'hit']
+      }
+    }
+  }
+}
+
 function fire(e) {
-  console.log(e.target.id)
+  
+  // computer turn
   if (activeBoard === 'player-board') {
     console.log('computer fires!')
-    console.log(playerState[e.target.id])
+    if (playerState[e.target.id] === 1) {
+      playerState[e.target.id] = -1
+      console.log('HIT!')
+      const getShip = checkGameState(e)
+      if (getShip[1] === 'destroyed') {
+        console.log(`player: you sunk my ${getShip[0]}`)
+      }
+
+    } else if (playerState[e.target.id] === -1 || 
+      playerState[e.target.id] === 2) {
+      console.log('Try Again...') 
+
+    } else {
+      playerState[e.target.id] = 2
+      console.log('MISS!')
+    }
     setTurn()
+
+  // player turn
   } else {
     console.log('player fires!')
-    console.log(opponentState[e.target.id])
+    if (opponentState[e.target.id] === 1) {
+      opponentState[e.target.id] = -1
+      console.log('HIT!')
+      const getShip = checkGameState(e)
+      if (getShip[1] === 'destroyed') {
+        console.log(`computer: you sunk my ${getShip[0]}`)
+      }
+
+    } else if (opponentState[e.target.id] === -1 || 
+              opponentState[e.target.id] === 2) {
+      console.log('Try Again...') 
+
+    } else {
+      opponentState[e.target.id] = 2
+      console.log('MISS!')
+    }
     setTurn()
   }
 }
