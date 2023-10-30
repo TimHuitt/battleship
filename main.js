@@ -1,6 +1,5 @@
 // todo: check game ending conditions
-// todo: dom updates for hit/miss
-// todo: 
+//
 
 //*----- constants -----*//
 
