@@ -1,4 +1,6 @@
-
+// todo: check game ending conditions
+// todo: dom updates for hit/miss
+// todo: 
 
 //*----- constants -----*//
 
@@ -28,11 +30,12 @@ const ships = {
 
 //*----- state variables -----*//
 
+let activeBoard
+let winner
+
 // debug
 let showOpponentPieces = true
 
-let activeBoard
-let isWinner
 
 //*----- cached elements  -----*//
 
@@ -71,7 +74,7 @@ init()
 
 function init() {
   activeBoard = 'player-board'
-  isWinner = false;
+  winner = false;
   // render player
   renderBoard(playerBoardEl)
   renderPlayerShips()
@@ -85,9 +88,7 @@ function init() {
   setShip('cruiser', 'g4', 's')
   setShip('sub', 'i9', 'w')
   setShip('destroyer', 'f6', 'n')
-
   setTurn()
-  
   setComputerBoard()
 
 }
@@ -338,26 +339,32 @@ function setComputerBoard() {
 }
 
 
+
 function getState(e) {
+  
+  let gameState = 0
+  
   
   if (activeBoard === 'player-board') {
     for (let ship in playerState.ships) {
+      const isSunk = playerState.ships[ship].every((cell) => playerState[cell] === -1)
+      console.log(ship, isSunk)
+      if (isSunk) gameState++
+
       if (playerState.ships[ship].includes(e.target.id)) {
-        const isSunk = playerState.ships[ship].every((cell) => playerState[cell] === -1)
-        
         if (isSunk) {
-          playerState.ships[ship] = false
+          // playerState.ships[ship] = false
           return [ship, 'destroyed']
         }
-        
         return [ship, 'hit']
       }
-    }
-    
+      
+    }   
   } else {
     for (let ship in opponentState.ships) {
+      const isSunk = opponentState.ships[ship].every((cell) => opponentState[cell] === -1)
+      
       if (opponentState.ships[ship].includes(e.target.id)) {
-        const isSunk = opponentState.ships[ship].every((cell) => opponentState[cell] === -1)
 
         if (isSunk) {
           return [ship, 'destroyed']
@@ -365,6 +372,7 @@ function getState(e) {
         
         return [ship, 'hit']
       }
+      
     }
   }
 }
@@ -381,6 +389,7 @@ function fire(e) {
     console.log('computer fires!')
     if (playerState[e.target.id] === 1) {
       playerState[e.target.id] = -1
+
       const getShip = getState(e)
       if (getShip[1] === 'destroyed') {
         console.log(`player: you sunk my ${getShip[0]}`)

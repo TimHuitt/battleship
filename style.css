@@ -19,14 +19,15 @@ body {
   padding: 2%;
   color: var(--light);
   font-family: 'Chakra Petch', sans-serif;
-  font-size: 3vmin;
+  font-size: 2vmin;
   justify-content: center;
   align-items: center;
 }
 main {
   display: flex;
   width: 125vmin;
-  height: 90vmin;
+  min-width: 95vmin;
+  height: 75vmin;
   flex-direction: row;
 }
 
@@ -68,7 +69,7 @@ main {
   align-items: center;
   width: 60%;
   height: 100%;
-  font-size: 2vmin;
+  font-size: 1.5vmin;
 }
 
 #opponent-ships { 
