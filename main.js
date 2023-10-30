@@ -360,6 +360,7 @@ function setComputerBoard() {
 function getGameState() {
   let gameState = 0
   for (let ship in playerState.ships) {
+    console.log(ship)
     const shipState = playerState.ships[ship].every((cell) => playerState[cell] === -1)
     if (shipState) gameState++
   }
@@ -402,7 +403,6 @@ function getShipState(e) {
 }
 
 function renderShot(cell, type) {
-  console.log(cell, type)
   if (type === 'hit') {
     cell.classList.remove('placed')
     cell.style.background = 'red'
@@ -415,6 +415,7 @@ function sinkShip() {
   
 }
 
+// todo: simplify
 // todo: replace console logs with renders
 // todo: separate concerns
 // fire on target
@@ -432,8 +433,8 @@ function fire(e) {
         console.log(`player: you sunk my ${getShip[0]}`)
       } else {
         console.log('HIT!')
-        renderShot(e.target, 'hit')
       }
+      renderShot(e.target, 'hit')
 
     } else if (playerState[e.target.id] === -1 || 
       playerState[e.target.id] === 2) {
@@ -450,7 +451,6 @@ function fire(e) {
   } else {
     console.log('player fires!')
 
-    // todo: not registering correctly
     if (opponentState[e.target.id] === 1) {
       opponentState[e.target.id] = -1
       console.log('HIT!')
