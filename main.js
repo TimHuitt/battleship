@@ -1,5 +1,17 @@
-// todo: check game ending conditions
-//
+// todo: Functionality
+  // todo:
+
+// todo: DOM
+  // todo: switch main board based on active board
+  // todo: on player/computer action
+    // todo: white = miss, red = hit
+      // todo: display hit/miss message
+    // todo: if ship destroyed, red border
+      // todo: add red bg to computer/player ships preview
+      // todo: reduce computer ships remaining count
+      // todo: destruction message
+  // todo: display turn message
+  // todo: display end game message
 
 //*----- constants -----*//
 
