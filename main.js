@@ -350,7 +350,7 @@ function setComputerBoard() {
       let randomDir = getRandomData()[2]
       valid = isValid(ship, randomDir, randomRow, randomCol)
       overlap = isOverlap(ship, randomRow, randomCol)
-      if (valid) {
+      if (valid && !overlap) {
         setShip(ship, String.fromCharCode(randomRow) + randomCol, randomDir)
       }
     }
@@ -359,10 +359,17 @@ function setComputerBoard() {
 
 function getGameState() {
   let gameState = 0
-  for (let ship in playerState.ships) {
-    console.log(ship)
-    const shipState = playerState.ships[ship].every((cell) => playerState[cell] === -1)
-    if (shipState) gameState++
+  
+  if (activeBoard === 'opponent-board') {
+    for (let ship in opponentState.ships) {
+      const shipState = opponentState.ships[ship].every((cell) => opponentState[cell] === -1)
+      if (shipState) gameState++
+    }
+  } else {
+    for (let ship in playerState.ships) {
+      const shipState = playerState.ships[ship].every((cell) => playerState[cell] === -1)
+      if (shipState) gameState++
+    }
   }
 
   if (gameState === 5) {
@@ -470,6 +477,7 @@ function fire(e) {
       console.log('MISS!')
       renderShot(e.target, 'miss')
     }
+
     if (getGameState()) console.log('Computer Wins!')
   }
   setTurn()
