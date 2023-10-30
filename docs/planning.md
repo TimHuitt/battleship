@@ -51,22 +51,22 @@
 
 - [ ] 2. Saturday/Sunday - Initial State + Render
 
-   - [ ] Create & Display State
-     - [ ] Identify DOM elements that will need to be updated
-     - [ ] Create and set starting values for each state
-     - [ ] Create render() and verify the DOM shows state in the browser
+   - [x] Create & Display State
+     - [x] Identify DOM elements that will need to be updated
+     - [x] Create and set starting values for each state
+     - [x] Create render() and verify the DOM shows state in the browser
 
-   - [ ] Invoke render() in init()
-     - [ ] Create helper functions to control changes in state / browser
+   - [x] Invoke render() in init()
+     - [x] Create helper functions to control changes in state / browser
 
    - [ ] Manually update state to play the game (start -> end game)
-     - [ ] Call helper functions() in the order they would be triggered
-     - [ ] Testing may be manual (invoking them after init() or using the browser console
-     - [ ] Verify the game can be played through manually
+     - [x] Call helper functions() in the order they would be triggered
+     - [x] Testing may be manual (invoking them after init() or using the browser console
+     - [] Verify the game can be played through manually
 
-   - [ ] Stretch / Planning
-     - [ ] Link your UI interactive elements to the handler functions
-     - [ ] Research advanced CSS features for future development
+   - [x] Stretch / Planning
+     - [x] Link your UI interactive elements to the handler functions
+     - [x] Research advanced CSS features for future development
 
 - [ ] 3. Monday/Tuesday - Interactions + Advanced UI Updates
 

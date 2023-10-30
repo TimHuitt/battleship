@@ -28,6 +28,9 @@ const ships = {
 
 //*----- state variables -----*//
 
+// debug
+let showOpponentPieces = true
+
 let activeBoard
 let isWinner
 
@@ -90,10 +93,6 @@ function init() {
 }
 
 
-
-function setTurn() {
-  activeBoard = (activeBoard === 'player-board') ? 'opponent-board' : 'player-board'
-}
 
 function renderPlayerShips() {
   let count = 0
@@ -210,8 +209,6 @@ function renderCellHighlights(type, e) {
 
 //*----- setters -----*//
 
-
-
 // set set board ship data
 // directions: n, e, s, w
 // ([ship name], [grid position], [direction letter])
@@ -233,7 +230,7 @@ function setShip(ship, cell, direction) {
     currentCell.classList.add('placed')
     playerState[cell] = 1
   } else {
-    currentCell.classList.add('placed')
+    if (showOpponentPieces) currentCell.classList.add('placed')
     opponentState[cell] = 1
   }
 
@@ -264,7 +261,7 @@ function setShip(ship, cell, direction) {
     } else {
       opponentState[nextCell] = 1
       nextCellEl = document.querySelector(`#${activeBoard} #${nextCell}`)
-      nextCellEl.classList.add('placed')
+      if (showOpponentPieces) nextCellEl.classList.add('placed')
     }
 
   }
@@ -313,6 +310,12 @@ function isOverlap(ship, dir, row, col) {
 }
 
 
+function getRandomData() {
+  let randomRow = Math.floor(Math.random() * (106-97) + 97)
+  let randomCol = Math.floor(Math.random() * (10 - 1) + 1)
+  let randomDir = ['n', 'e', 's', 'w'][Math.floor(Math.random() * 4)]
+  return [randomRow, randomCol, randomDir]
+}
 
 // randomly search ship starting positions
 // set ship if position is valid
@@ -322,9 +325,9 @@ function setComputerBoard() {
     let overlap = false
 
     while (!valid && !overlap) {
-      let randomRow = Math.floor(Math.random() * (106-97) + 97)
-      let randomCol = Math.floor(Math.random() * (10 - 1) + 1)
-      let randomDir = ['n', 'e', 's', 'w'][Math.floor(Math.random() * 4)]
+      let randomRow = getRandomData()[0]
+      let randomCol = getRandomData()[1]
+      let randomDir = getRandomData()[2]
       valid = isValid(ship, randomDir, randomRow, randomCol)
       overlap = isOverlap(ship, randomRow, randomCol)
       if (valid) {
@@ -335,20 +338,22 @@ function setComputerBoard() {
 }
 
 
-function checkGameState(e) {
-  let gameEnd = false
+function getState(e) {
+  
   if (activeBoard === 'player-board') {
     for (let ship in playerState.ships) {
       if (playerState.ships[ship].includes(e.target.id)) {
         const isSunk = playerState.ships[ship].every((cell) => playerState[cell] === -1)
-
+        
         if (isSunk) {
+          playerState.ships[ship] = false
           return [ship, 'destroyed']
         }
         
         return [ship, 'hit']
       }
     }
+    
   } else {
     for (let ship in opponentState.ships) {
       if (opponentState.ships[ship].includes(e.target.id)) {
@@ -364,6 +369,11 @@ function checkGameState(e) {
   }
 }
 
+
+
+// fire on target
+// check if hit or miss
+// check for destruction
 function fire(e) {
   
   // computer turn
@@ -371,10 +381,11 @@ function fire(e) {
     console.log('computer fires!')
     if (playerState[e.target.id] === 1) {
       playerState[e.target.id] = -1
-      console.log('HIT!')
-      const getShip = checkGameState(e)
+      const getShip = getState(e)
       if (getShip[1] === 'destroyed') {
         console.log(`player: you sunk my ${getShip[0]}`)
+      } else {
+        console.log('HIT!')
       }
 
     } else if (playerState[e.target.id] === -1 || 
@@ -390,10 +401,11 @@ function fire(e) {
   // player turn
   } else {
     console.log('player fires!')
+
     if (opponentState[e.target.id] === 1) {
       opponentState[e.target.id] = -1
       console.log('HIT!')
-      const getShip = checkGameState(e)
+      const getShip = getState(e)
       if (getShip[1] === 'destroyed') {
         console.log(`computer: you sunk my ${getShip[0]}`)
       }
@@ -408,6 +420,16 @@ function fire(e) {
     }
     setTurn()
   }
+}
+
+// toggle current turn
+function setTurn() {
+  activeBoard = (activeBoard === 'player-board') ? 'opponent-board' : 'player-board'
+}
+
+
+function computerAssign() {
+  
 }
 
 function setBoardState(player, cell) {

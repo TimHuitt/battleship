@@ -18,42 +18,37 @@
 - [ ] 2. **Player Setup**
   - [ ] a. Player selects a ship and position on the board
     * Select a ship from the player ship container
-    * Click and hold the starting cell on the board
-    * Drag in the direction the ship should be placed
-    * Release to confirm
-    * OR
-    * Attach the ship to the mouse
-    * Right-click to rotate
-    * Click a cell to place
+    * Click starting cell
+    * Click cell in desired direction
   - [ ] b. Player continues placing ships until all 5 ships have been added to the player board
-  - [ ] c. Update playerBoard with ship locations
+  - [x] c. Update playerBoard with ship locations
 ---
-- [ ] 3. **Computer Setup**
-  - [ ] a. Assign randomly selected ship locations to computerBoard array (not displayed)
+- [x] 3. **Computer Setup**
+  - [x] a. Assign randomly selected ship locations to computerBoard array (not displayed)
 ---
 - [ ] 4. **Begin Game**
   - [ ] a. Randomly select the first player
   - [ ] b. Alert the player which player goes first
   - [ ] c. Player Turn
-    * Computer board is expanded to fit the right section
-    * Player board shrinks to fit the left section
-    * The player selects a cell on the computer board
-    * The selected cell updates to display a hit (red) or miss (white)
-      * If a hit occurs, check if hit destroys ship
-      * If ship destroyed, outline all hit cells to indicate destruction
-    * Check if computer has ships remaining
-      * If not, end game
-      * Else end turn
+    * - [ ] Computer board is expanded to fit the right section
+    * - [ ] Player board shrinks to fit the left section
+    * - [x] Player selects a cell on the computer board
+    * - [ ] The selected cell updates to display a hit (red) or miss (white)
+      * - [x] If a hit occurs, check if hit destroys ship
+      * - [ ] If ship destroyed, outline all hit cells and fill ship previews with red to indicate destruction
+    * - [ ] Check if computer has ships remaining
+      * - [ ] If not, end game
+      * - [ ] Else end turn
   - [ ] d. Computer Turn
-    * Player board is expanded to fit the right section
-    * Computer board shrinks to fit the left section
-    * The computer selects a cell on the player board
-    * The selected cell updates to display a hit (red) or miss (white)
-      * If a hit occurs, check if hit destroys ship
-      * If ship destroyed, outline all hit cells to indicate destruction
-    * Check if player has ships remaining
-      * If not, end game
-      * Else end turn
+    * - [ ] Player board is expanded to fit the right section
+    * - [ ] Computer board shrinks to fit the left section
+    * - [ ] The computer selects a cell on the player board
+    * - [ ] The selected cell updates to display a hit (red) or miss (white)
+      * - [ ] If a hit occurs, check if hit destroys ship
+      * - [ ] If ship destroyed, outline all hit cells and fill ships in ship container with red to indicate destruction
+    * - [ ] Check if player has ships remaining
+      * - [ ] If not, end game
+      * - [ ] Else end turn
 ---
 - [ ] 5. **End Game**
   - [ ] a. If either player has lost all ships, the game is over
