@@ -200,6 +200,7 @@ setShips('destroyer', 'f6', 'n')
 
 
 function setShips(ship, cell, direction) {
+  console.log(ship, cell, direction)
   const currentCell = document.querySelector(`#${currentPlayer} #${cell}`)
   let currentRow = cell.split('')[0]
   let currentCol = parseInt(cell.slice(1))
@@ -209,48 +210,32 @@ function setShips(ship, cell, direction) {
   let nextCellEl
   let nextCell
 
+  
+  valid = isValid(ship, direction, currentChar, currentCol)
+  if (!valid) return console.log("invalid placement")
+  
   if (currentPlayer === 'player-board') {
     currentCell.classList.add('placed')
     playerState[cell] = 1
   } else {
-
+    currentCell.classList.add('placed')
+    opponentState[cell] = 1
   }
 
   cellRange.push(cell)
 
   // check if ship fits within boundries
-  if (direction === 'n' && currentChar - ships[ship] + 1 < 97) {
-    valid = false
-  }
-  if (direction === 'e' && currentCol + ships[ship] - 1 > 10) {
-    valid = false
-  }
-  if (direction === 's' && currentChar + ships[ship] - 1 > 106) {
-    valid = false
-  }
-  if (direction === 'w' && currentCol - ships[ship] + 1 < 1) {
-    valid = false
-  }
-
   // add each new cell to board state 
   // based on selected ship, start cell, and direction
   for (let i = 0; i < ships[ship] - 1; i++) {
     if (direction === 'n') {
-      if (currentChar > 97) {
         currentChar -= 1
-      }
     } else if (direction === 'e') {
-      if (currentCol < 10) {
         currentCol += 1
-      }
     } else if (direction === 's') {
-      if (currentChar + 1 <= 106) {
         currentChar += 1
-      }
     } else if (direction === 'w') {
-      if (currentCol - 1 >= 1) {
         currentCol -= 1
-      }
     }
 
     currentRow = String.fromCharCode(currentChar)
@@ -263,6 +248,8 @@ function setShips(ship, cell, direction) {
       nextCellEl.classList.add('placed')
     } else {
       opponentState[nextCell] = 1
+      nextCellEl = document.querySelector(`#${currentPlayer} #${nextCell}`)
+      nextCellEl.classList.add('placed')
     }
 
   }
@@ -273,17 +260,43 @@ function setShips(ship, cell, direction) {
   }
 }
 
+// check if ship orientation is valid
+function isValid(ship, dir, row, col) {
+  if (!ship || !dir || !row || !col) return false
+  if (dir === 'n' && row - ships[ship] + 1 < 97) {
+    return false
+  }
+  if (dir === 'e' && col + ships[ship] - 1 > 10) {
+    return false
+  }
+  if (dir === 's' && row + ships[ship] - 1 > 106) {
+    return false
+  }
+  if (dir === 'w' && col - ships[ship] + 1 < 1) {
+    return false
+  }
 
-currentPlayer = 'opponent-board'
-setComputerBoard()
-currentPlayer = 'player-board'
+  return true
+}
+
+
+// currentPlayer = 'opponent-board'
+// setComputerBoard()
+// currentPlayer = 'player-board'
 
 function setComputerBoard() {
-  setShips('carrier', 'b5', 'w')
-  setShips('battleship', 'f8', 'n')
-  setShips('cruiser', 'g4', 's')
-  setShips('sub', 'i9', 'w')
-  setShips('destroyer', 'f6', 'n')
+
+  for (let ship in ships) {
+      let randomRow
+      let randomCol
+      let randomDir
+    while(!isValid(ship, randomDir, randomRow, randomCol)) {
+      randomRow = String.fromCharCode(Math.floor(Math.random() * (106-97) + 97))
+      randomCol = Math.floor(Math.random() * (10 - 1) + 1)
+      randomDir = ['n', 'e', 's', 'w'][Math.floor(Math.random() * 4)]
+    }
+    setShips(ship, randomRow + randomCol, randomDir)
+  }
 }
 
 function setBoardState(player, cell) {
