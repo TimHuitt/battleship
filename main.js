@@ -1,5 +1,5 @@
 // todo: Functionality
-  // todo:
+  // todo: add player ship select/placement
 
 // todo: DOM
   // todo: switch main board based on active board
@@ -52,6 +52,7 @@ let showOpponentPieces = true
 
 const opponentBoardEl = document.querySelector('#opponent-board')
 const largeBoardEl = document.querySelector('#large-board-wrapper')
+const smallBoardEl = document.querySelector('#small-board-wrapper')
 const playerBoardEl = document.querySelector('#player-board')
 const playerShipsEl = document.querySelector('#player-ships-wrapper')
 const playerShips = document.querySelectorAll('#player-ships-wrapper > div')
@@ -117,7 +118,6 @@ function renderPlayerShips() {
       const cell = new CreateCell(ship + '_' + id, 'ship')
       parent.appendChild(cell.el)
     }
-
     count++
   }
 }
@@ -394,6 +394,18 @@ function getState(e) {
   }
 }
 
+function renderShot(cell, type) {
+  if (type === 'hit') {
+    cell.classList.remove('placed')
+    cell.style.background = 'red'
+  } else if (type === 'miss') {
+    cell.style.background = 'white'
+  }
+}
+
+function sinkShip() {
+  
+}
 
 
 // fire on target
@@ -401,62 +413,52 @@ function getState(e) {
 // check for destruction
 function fire(e) {
   
-  // computer turn
-  if (activeBoard === 'player-board') {
-    console.log('computer fires!')
-    if (playerState[e.target.id] === 1) {
-      playerState[e.target.id] = -1
+  const isPlayerBoard = activeBoard === 'player-board';
 
-      const getShip = getState(e)
-      if (getShip[1] === 'destroyed') {
-        console.log(`player: you sunk my ${getShip[0]}`)
-      } else {
-        console.log('HIT!')
-      }
+  const targetState = isPlayerBoard ? playerState : opponentState;
+  const opponentName = isPlayerBoard ? 'computer' : 'player';
+  let validShot = false
 
-    } else if (playerState[e.target.id] === -1 || 
-      playerState[e.target.id] === 2) {
-      console.log('Try Again...') 
-
-    } else {
-      playerState[e.target.id] = 2
-      console.log('MISS!')
+  if (targetState[e.target.id] === 1) {
+    console.log(isPlayerBoard ? 'computer fires!' : 'player fires!');
+    targetState[e.target.id] = -1;
+    console.log('HIT!');
+    renderShot(e.target, 'hit')
+    const getShip = getState(e);
+    if (getShip[1] === 'destroyed') {
+      console.log(`${opponentName}: you sunk my ${getShip[0]}`);
     }
-    if (getGameState()) console.log('Player Wins!')
-    setTurn()
-
-  // player turn
+  } else if (targetState[e.target.id] === -1 || targetState[e.target.id] === 2) {
+    console.log('Target previously fired upon. Try Again...');
+    return
   } else {
-    console.log('player fires!')
-
-    if (opponentState[e.target.id] === 1) {
-      opponentState[e.target.id] = -1
-      console.log('HIT!')
-      const getShip = getState(e)
-      if (getShip[1] === 'destroyed') {
-        console.log(`computer: you sunk my ${getShip[0]}`)
-      }
-
-    } else if (opponentState[e.target.id] === -1 || 
-              opponentState[e.target.id] === 2) {
-      console.log('Try Again...') 
-
-    } else {
-      opponentState[e.target.id] = 2
-      console.log('MISS!')
-    }
-    if (getGameState()) console.log('Computer Wins!')
-    setTurn()
+    targetState[e.target.id] = 2;
+    console.log(isPlayerBoard ? 'computer fires!' : 'player fires!');
+    console.log('MISS!');
+    renderShot(e.target, 'miss')
   }
+
+  if (getGameState()) {
+    console.log(isPlayerBoard ? 'Player Wins!' : 'Computer Wins!');
+  }
+  
+  setTurn()
 }
 
 // toggle current turn
 function setTurn() {
   activeBoard = (activeBoard === 'player-board') ? 'opponent-board' : 'player-board'
+  if (activeBoard === 'player-board') {
+    smallBoardEl.appendChild(opponentBoardEl)
+    largeBoardEl.appendChild(playerBoardEl)
+  } else {
+    smallBoardEl.appendChild(playerBoardEl)
+    largeBoardEl.appendChild(opponentBoardEl)
+  }
 }
 
 
-function computerAssign() {
+function computerPlay() {
   
 }
 
