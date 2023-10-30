@@ -1,10 +1,14 @@
 // todo: Functionality
   // todo: add player ship select/placement
+  // todo: detect overlapping ship placement
+  // todo: computer plays automatically
+  // todo: add end game function to finanlize/call init
 
 // todo: DOM
-  // todo: switch main board based on active board
+  // todo: add player ship selection/placement actions
+  // switch main board based on active board
   // todo: on player/computer action
-    // todo: white = miss, red = hit
+    // white = miss, red = hit
       // todo: display hit/miss message
     // todo: if ship destroyed, red border
       // todo: add red bg to computer/player ships preview
@@ -12,6 +16,10 @@
       // todo: destruction message
   // todo: display turn message
   // todo: display end game message
+
+// todo: Styling
+  // todo: add board switch animation
+  // todo: fade in/out messages (player select, turn, sink, win)
 
 //*----- constants -----*//
 
@@ -363,26 +371,25 @@ function getGameState() {
   return false
 }
 
-function getState(e) {
+// todo: simplify like 'fire'
+// returns struck ship and whether it is hit or destroyed
+function getShipState(e) {
   if (activeBoard === 'player-board') {
     for (let ship in playerState.ships) {
-      
       if (playerState.ships[ship].includes(e.target.id)) {
         const isSunk = playerState.ships[ship].every((cell) => playerState[cell] === -1)
+
         if (isSunk) {
-          // playerState.ships[ship] = false
           return [ship, 'destroyed']
         }
         return [ship, 'hit']
       }
-      
     }   
   } else {
     for (let ship in opponentState.ships) {
       const isSunk = opponentState.ships[ship].every((cell) => opponentState[cell] === -1)
       
       if (opponentState.ships[ship].includes(e.target.id)) {
-
         if (isSunk) {
           return [ship, 'destroyed']
         }
@@ -395,6 +402,7 @@ function getState(e) {
 }
 
 function renderShot(cell, type) {
+  console.log(cell, type)
   if (type === 'hit') {
     cell.classList.remove('placed')
     cell.style.background = 'red'
@@ -407,41 +415,63 @@ function sinkShip() {
   
 }
 
-
+// todo: replace console logs with renders
+// todo: separate concerns
 // fire on target
 // check if hit or miss
 // check for destruction
 function fire(e) {
-  
-  const isPlayerBoard = activeBoard === 'player-board';
+  // computer turn
+  if (activeBoard === 'player-board') {
+    console.log('computer fires!')
+    if (playerState[e.target.id] === 1) {
+      playerState[e.target.id] = -1
 
-  const targetState = isPlayerBoard ? playerState : opponentState;
-  const opponentName = isPlayerBoard ? 'computer' : 'player';
-  let validShot = false
+      const getShip = getShipState(e)
+      if (getShip[1] === 'destroyed') {
+        console.log(`player: you sunk my ${getShip[0]}`)
+      } else {
+        console.log('HIT!')
+        renderShot(e.target, 'hit')
+      }
 
-  if (targetState[e.target.id] === 1) {
-    console.log(isPlayerBoard ? 'computer fires!' : 'player fires!');
-    targetState[e.target.id] = -1;
-    console.log('HIT!');
-    renderShot(e.target, 'hit')
-    const getShip = getState(e);
-    if (getShip[1] === 'destroyed') {
-      console.log(`${opponentName}: you sunk my ${getShip[0]}`);
+    } else if (playerState[e.target.id] === -1 || 
+      playerState[e.target.id] === 2) {
+      console.log('Try Again...') 
+      return
+    } else {
+      playerState[e.target.id] = 2
+      console.log('MISS!')
+      renderShot(e.target, 'miss')
     }
-  } else if (targetState[e.target.id] === -1 || targetState[e.target.id] === 2) {
-    console.log('Target previously fired upon. Try Again...');
-    return
-  } else {
-    targetState[e.target.id] = 2;
-    console.log(isPlayerBoard ? 'computer fires!' : 'player fires!');
-    console.log('MISS!');
-    renderShot(e.target, 'miss')
-  }
+    if (getGameState()) console.log('Player Wins!')
 
-  if (getGameState()) {
-    console.log(isPlayerBoard ? 'Player Wins!' : 'Computer Wins!');
+  // player turn
+  } else {
+    console.log('player fires!')
+
+    // todo: not registering correctly
+    if (opponentState[e.target.id] === 1) {
+      opponentState[e.target.id] = -1
+      console.log('HIT!')
+      renderShot(e.target, 'hit')
+
+      const getShip = getShipState(e)
+      if (getShip[1] === 'destroyed') {
+        console.log(`computer: you sunk my ${getShip[0]}`)
+      }
+
+    } else if (opponentState[e.target.id] === -1 || 
+              opponentState[e.target.id] === 2) {
+      console.log('Try Again...') 
+      return
+    } else {
+      opponentState[e.target.id] = 2
+      console.log('MISS!')
+      renderShot(e.target, 'miss')
+    }
+    if (getGameState()) console.log('Computer Wins!')
   }
-  
   setTurn()
 }
 
@@ -462,7 +492,4 @@ function computerPlay() {
   
 }
 
-function setBoardState(player, cell) {
-
-}
 
