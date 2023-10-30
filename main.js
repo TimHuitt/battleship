@@ -1,4 +1,26 @@
-// todo: dom updates for hit/miss
+// todo: Functionality
+  // todo: add player ship select/placement
+  // todo: detect overlapping ship placement
+  // todo: computer plays automatically
+  // todo: add end game function to finanlize/call init
+  // todo: simplify all functions with if(player)else(opponent)
+
+// todo: DOM
+  // todo: add player ship selection/placement actions
+  // switch main board based on active board
+  // todo: on player/computer action
+    // white = miss, red = hit
+      // todo: display hit/miss message
+    // todo: if ship destroyed, red border
+      // todo: add red bg to computer/player ships preview
+      // todo: reduce computer ships remaining count
+      // todo: destruction message
+  // todo: display turn message
+  // todo: display end game message
+
+// todo: Styling
+  // todo: add board switch animation
+  // todo: fade in/out messages (player select, turn, sink, win)
 
 //*----- constants -----*//
 
@@ -30,15 +52,17 @@ const ships = {
 
 let activeBoard
 let winner
+let initialize
 
 // debug
-let showOpponentPieces = true
+let showOpponentPieces = false
 
 
 //*----- cached elements  -----*//
 
 const opponentBoardEl = document.querySelector('#opponent-board')
 const largeBoardEl = document.querySelector('#large-board-wrapper')
+const smallBoardEl = document.querySelector('#small-board-wrapper')
 const playerBoardEl = document.querySelector('#player-board')
 const playerShipsEl = document.querySelector('#player-ships-wrapper')
 const playerShips = document.querySelectorAll('#player-ships-wrapper > div')
@@ -73,6 +97,8 @@ init()
 function init() {
   activeBoard = 'player-board'
   winner = false;
+  initializing = true;
+  
   // render player
   renderBoard(playerBoardEl)
   renderPlayerShips()
@@ -86,55 +112,17 @@ function init() {
   setShip('cruiser', 'g4', 's')
   setShip('sub', 'i9', 'w')
   setShip('destroyer', 'f6', 'n')
+
   setTurn()
   setComputerBoard()
-
 }
 
 
-
-function renderPlayerShips() {
-  let count = 0
-  for (const ship in ships) {
-    parent = playerShips[count]
-    id = ship
-    cells = ships[ship]
-    
-    for (let i = 0; i < cells; i++) {
-      const cell = new CreateCell(ship + '_' + id, 'ship')
-      parent.appendChild(cell.el)
-    }
-
-    count++
-  }
-}
-
-function renderBoard(e) {
-  row = 97
-  currentCol = 1
-  for (let i = 1; i <= 100; i++) {
-    currentRow = String.fromCharCode(row)
-    let pos = currentRow + currentCol
-    const cell = new CreateCell(pos, 'cell', pos)
-    e.appendChild(cell.el)
-
-    if (e.id === 'player-board') {
-      playerState[pos] = 0
-    } else if (e.id === 'opponent-board') {
-      opponentState[pos] = 0
-    }
-    if (!(i % 10)) { 
-      row++
-      currentCol -= 10
-    }
-    currentCol++
-  }
-}
 
 //*----- handlers -----*//
 
 function handleBoardEvent(e) {
-  if (e.type === 'click') fire(e) // !
+  if (e.type === 'click') fire(e.target) // !
   if (e.type === 'mouseover' && !e.target.id.includes('board')) {
     renderCellHighlights(1, e)
   }
@@ -171,6 +159,45 @@ function handleShipEvent(e) {
 }
 
 //*----- rendering -----*//
+
+
+
+function renderPlayerShips() {
+  let count = 0
+  for (const ship in ships) {
+    parent = playerShips[count]
+    id = ship
+    cells = ships[ship]
+    
+    for (let i = 0; i < cells; i++) {
+      const cell = new CreateCell(ship + '_' + id, 'ship')
+      parent.appendChild(cell.el)
+    }
+    count++
+  }
+}
+
+function renderBoard(e) {
+  row = 97
+  currentCol = 1
+  for (let i = 1; i <= 100; i++) {
+    currentRow = String.fromCharCode(row)
+    let pos = currentRow + currentCol
+    const cell = new CreateCell(pos, 'cell', pos)
+    e.appendChild(cell.el)
+
+    if (e.id === 'player-board') {
+      playerState[pos] = 0
+    } else if (e.id === 'opponent-board') {
+      opponentState[pos] = 0
+    }
+    if (!(i % 10)) { 
+      row++
+      currentCol -= 10
+    }
+    currentCol++
+  }
+}
 
 // row and column highlight on hover
 // type: 1/0 = add/remove
@@ -329,18 +356,29 @@ function setComputerBoard() {
       let randomDir = getRandomData()[2]
       valid = isValid(ship, randomDir, randomRow, randomCol)
       overlap = isOverlap(ship, randomRow, randomCol)
-      if (valid) {
+      if (valid && !overlap) {
         setShip(ship, String.fromCharCode(randomRow) + randomCol, randomDir)
       }
     }
   }
+  initializing = false
 }
 
+// todo: simplify
+// check if game has ended
 function getGameState() {
   let gameState = 0
-  for (let ship in playerState.ships) {
-    const shipState = playerState.ships[ship].every((cell) => playerState[cell] === -1)
-    if (shipState) gameState++
+  
+  if (activeBoard === 'opponent-board') {
+    for (let ship in opponentState.ships) {
+      const shipState = opponentState.ships[ship].every((cell) => opponentState[cell] === -1)
+      if (shipState) gameState++
+    }
+  } else {
+    for (let ship in playerState.ships) {
+      const shipState = playerState.ships[ship].every((cell) => playerState[cell] === -1)
+      if (shipState) gameState++
+    }
   }
 
   if (gameState === 5) {
@@ -350,30 +388,28 @@ function getGameState() {
   return false
 }
 
-function getState(e) {
+// todo: simplify
+// returns struck ship and whether it is hit or destroyed
+function getShipState(e) {
   if (activeBoard === 'player-board') {
     for (let ship in playerState.ships) {
-      
-      if (playerState.ships[ship].includes(e.target.id)) {
+      if (playerState.ships[ship].includes(e.id)) {
         const isSunk = playerState.ships[ship].every((cell) => playerState[cell] === -1)
+
         if (isSunk) {
-          // playerState.ships[ship] = false
           return [ship, 'destroyed']
         }
         return [ship, 'hit']
       }
-      
     }   
   } else {
     for (let ship in opponentState.ships) {
       const isSunk = opponentState.ships[ship].every((cell) => opponentState[cell] === -1)
       
-      if (opponentState.ships[ship].includes(e.target.id)) {
-
+      if (opponentState.ships[ship].includes(e.id)) {
         if (isSunk) {
           return [ship, 'destroyed']
         }
-        
         return [ship, 'hit']
       }
       
@@ -381,73 +417,114 @@ function getState(e) {
   }
 }
 
+function renderShot(cell, type) {
+  if (type === 'hit') {
+    cell.classList.remove('placed')
+    cell.style.background = 'red'
+  } else if (type === 'miss') {
+    cell.style.background = 'white'
+  }
+}
 
+function sinkShip() {
+  
+}
 
+// todo: simplify
+// todo: replace console logs with renders
+// todo: separate concerns
 // fire on target
 // check if hit or miss
 // check for destruction
 function fire(e) {
-  
+
   // computer turn
   if (activeBoard === 'player-board') {
     console.log('computer fires!')
-    if (playerState[e.target.id] === 1) {
-      playerState[e.target.id] = -1
+    if (playerState[e.id] === 1) {
+      playerState[e.id] = -1
 
-      const getShip = getState(e)
+      const getShip = getShipState(e)
       if (getShip[1] === 'destroyed') {
         console.log(`player: you sunk my ${getShip[0]}`)
       } else {
         console.log('HIT!')
       }
+      renderShot(e, 'hit')
 
-    } else if (playerState[e.target.id] === -1 || 
-      playerState[e.target.id] === 2) {
+    } else if (playerState[e.id] === -1 || 
+      playerState[e.id] === 2) {
       console.log('Try Again...') 
-
+      return false
     } else {
-      playerState[e.target.id] = 2
+      playerState[e.id] = 2
       console.log('MISS!')
+      renderShot(e, 'miss')
     }
-    if (getGameState()) console.log('Player Wins!')
-    setTurn()
+    if (getGameState()) console.log('Computer Wins!')
 
   // player turn
   } else {
     console.log('player fires!')
 
-    if (opponentState[e.target.id] === 1) {
-      opponentState[e.target.id] = -1
+    // if cell is occupied
+    if (opponentState[e.id] === 1) {
+      opponentState[e.id] = -1
       console.log('HIT!')
-      const getShip = getState(e)
+      renderShot(e, 'hit')
+
+      const getShip = getShipState(e)
       if (getShip[1] === 'destroyed') {
         console.log(`computer: you sunk my ${getShip[0]}`)
       }
 
-    } else if (opponentState[e.target.id] === -1 || 
-              opponentState[e.target.id] === 2) {
+    } else if (opponentState[e.id] === -1 || 
+              opponentState[e.id] === 2) {
       console.log('Try Again...') 
+      return false
 
     } else {
-      opponentState[e.target.id] = 2
+      opponentState[e.id] = 2
       console.log('MISS!')
+      renderShot(e, 'miss')
     }
-    if (getGameState()) console.log('Computer Wins!')
-    setTurn()
+
+    if (getGameState()) console.log('player Wins!')
   }
+  setTurn()
+  return true
 }
 
 // toggle current turn
 function setTurn() {
   activeBoard = (activeBoard === 'player-board') ? 'opponent-board' : 'player-board'
+  if (activeBoard === 'player-board') {
+    smallBoardEl.appendChild(opponentBoardEl)
+    largeBoardEl.appendChild(playerBoardEl)
+    const targetCell = playerBoardEl.querySelector(`#${computerChoice()}`)
+    if (!initializing) fire(targetCell)
+  } else {
+    smallBoardEl.appendChild(playerBoardEl)
+    largeBoardEl.appendChild(opponentBoardEl)
+  }
 }
 
 
-function computerAssign() {
-  
+
+function computerChoice() {
+
+  let valid = false
+  while (!valid) {
+    
+    let input = getRandomData()
+    let row = String.fromCharCode(input[0])
+    let col = input[1]
+    output = row + col
+    if (playerState[output] === 1 || playerState[output] === 0) valid = true
+
+  }
+
+  return output
 }
 
-function setBoardState(player, cell) {
-
-}
 
