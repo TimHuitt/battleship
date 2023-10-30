@@ -27,7 +27,7 @@ const ships = {
 
 //*----- state variables -----*//
 
-let currentPlayer
+let activeBoard
 let isWinner
 
 //*----- cached elements  -----*//
@@ -66,13 +66,32 @@ class CreateCell {
 init()
 
 function init() {
-  currentPlayer = 'player-board'
+  activeBoard = 'player-board'
   isWinner = false;
   // render player
   renderBoard(playerBoardEl)
   renderPlayerShips()
   // render opponent
   renderBoard(opponentBoardEl)
+
+
+  // todo: remove manual gameplay
+  setShip('carrier', 'b5', 'w')
+  setShip('battleship', 'f8', 'n')
+  setShip('cruiser', 'g4', 's')
+  setShip('sub', 'i9', 'w')
+  setShip('destroyer', 'f6', 'n')
+
+  setTurn()
+  
+  setComputerBoard()
+
+}
+
+
+
+function setTurn() {
+  activeBoard = (activeBoard === 'player-board') ? 'opponent-board' : 'player-board'
 }
 
 function renderPlayerShips() {
@@ -116,8 +135,7 @@ function renderBoard(e) {
 //*----- handlers -----*//
 
 function handleBoardEvent(e) {
-  if (e.type === 'click') {
-  }
+  if (e.type === 'click') fire(e) // !
   if (e.type === 'mouseover' && !e.target.id.includes('board')) {
     renderCellHighlights(1, e)
   }
@@ -167,7 +185,7 @@ function renderCellHighlights(type, e) {
   if (type) {
     renderCellHighlights(0, e)
     boardCells.forEach((cell) => {
-      if (cell.parentElement.id === currentPlayer &&
+      if (cell.parentElement.id === activeBoard &&
           (cell.id.includes(currentRow) ||
           cell.id.includes(currentCol))) {
 
@@ -192,29 +210,25 @@ function renderCellHighlights(type, e) {
 //*----- setters -----*//
 
 
-setShips('carrier', 'b5', 'w')
-setShips('battleship', 'f8', 'n')
-setShips('cruiser', 'g4', 's')
-setShips('sub', 'i9', 'w')
-setShips('destroyer', 'f6', 'n')
 
-
-function setShips(ship, cell, direction) {
-  console.log(ship, cell, direction)
-  const currentCell = document.querySelector(`#${currentPlayer} #${cell}`)
+// set set board ship data
+// directions: n, e, s, w
+// ([ship name], [grid position], [direction letter])
+// (str, str, str)
+// ('battleship', 'i9', 'n')
+function setShip(ship, cell, direction) {
+  const currentCell = document.querySelector(`#${activeBoard} #${cell}`)
   let currentRow = cell.split('')[0]
   let currentCol = parseInt(cell.slice(1))
   let currentChar = currentRow.charCodeAt(0) // a - j: 97 - 106
-  let valid = true
   let cellRange = []
   let nextCellEl
   let nextCell
 
-  
-  valid = isValid(ship, direction, currentChar, currentCol)
-  if (!valid) return console.log("invalid placement")
-  
-  if (currentPlayer === 'player-board') {
+  let valid = isValid(ship, direction, currentChar, currentCol)
+  if (!valid) return console.log(activeBoard, ship, direction, String.fromCharCode(currentChar) + currentCol, "invalid placement")
+
+  if (activeBoard === 'player-board') {
     currentCell.classList.add('placed')
     playerState[cell] = 1
   } else {
@@ -242,18 +256,18 @@ function setShips(ship, cell, direction) {
     nextCell = `${currentRow}${currentCol}`
     cellRange.push(nextCell)
 
-    if (currentPlayer === 'player-board') {
+    if (activeBoard === 'player-board') {
       playerState[nextCell] = 1
-      nextCellEl = document.querySelector(`#${currentPlayer} #${nextCell}`)
+      nextCellEl = document.querySelector(`#${activeBoard} #${nextCell}`)
       nextCellEl.classList.add('placed')
     } else {
       opponentState[nextCell] = 1
-      nextCellEl = document.querySelector(`#${currentPlayer} #${nextCell}`)
+      nextCellEl = document.querySelector(`#${activeBoard} #${nextCell}`)
       nextCellEl.classList.add('placed')
     }
 
   }
-  if (currentPlayer === 'player-board') {
+  if (activeBoard === 'player-board') {
     playerState['ships'][ship] = cellRange
   } else {
     opponentState['ships'][ship] = cellRange
@@ -261,44 +275,78 @@ function setShips(ship, cell, direction) {
 }
 
 // check if ship orientation is valid
+// ([ship name], [direction letter], [row char number], [column number])
+// (str, str, int, int)
+// ('battleship', 's', 97, 4)
 function isValid(ship, dir, row, col) {
   if (!ship || !dir || !row || !col) return false
-  if (dir === 'n' && row - ships[ship] + 1 < 97) {
+
+  if (dir == 'n' && row - ships[ship] + 1 < 97) {
     return false
-  }
-  if (dir === 'e' && col + ships[ship] - 1 > 10) {
+  } else if (dir == 'e' && col + ships[ship] - 1 > 10) {
     return false
-  }
-  if (dir === 's' && row + ships[ship] - 1 > 106) {
+  } else if (dir == 's' && row + ships[ship] - 1 > 106) {
     return false
-  }
-  if (dir === 'w' && col - ships[ship] + 1 < 1) {
+  } else if (dir == 'w' && col - ships[ship] + 1 < 1) {
     return false
   }
 
   return true
 }
 
+// todo: complete function
+// check current ship location for overlap
+// ([ship name], [direction letter], [row char number], [column number])
+// (str, str, int, int)
+// ('battleship', 's', 97, 4)
+function isOverlap(ship, dir, row, col) {
+  const cell = row + col
+  for (let i = 0; i < ships[ship]; i++) {
+  }
 
-// currentPlayer = 'opponent-board'
-// setComputerBoard()
-// currentPlayer = 'player-board'
+  if (activeBoard === 'player-board') {
+    if (playerState[cell] > 0) return false
+  } else {
+    if (opponentState[cell] > 0) return false
+  }
+}
 
+
+
+// randomly search ship starting positions
+// set ship if position is valid
 function setComputerBoard() {
-
   for (let ship in ships) {
-      let randomRow
-      let randomCol
-      let randomDir
-    while(!isValid(ship, randomDir, randomRow, randomCol)) {
-      randomRow = String.fromCharCode(Math.floor(Math.random() * (106-97) + 97))
-      randomCol = Math.floor(Math.random() * (10 - 1) + 1)
-      randomDir = ['n', 'e', 's', 'w'][Math.floor(Math.random() * 4)]
+    let valid = false
+    let overlap = false
+
+    while (!valid && !overlap) {
+      let randomRow = Math.floor(Math.random() * (106-97) + 97)
+      let randomCol = Math.floor(Math.random() * (10 - 1) + 1)
+      let randomDir = ['n', 'e', 's', 'w'][Math.floor(Math.random() * 4)]
+      valid = isValid(ship, randomDir, randomRow, randomCol)
+      overlap = isOverlap(ship, randomRow, randomCol)
+      if (valid) {
+        setShip(ship, String.fromCharCode(randomRow) + randomCol, randomDir)
+      }
     }
-    setShips(ship, randomRow + randomCol, randomDir)
+  }
+}
+
+function fire(e) {
+  console.log(e.target.id)
+  if (activeBoard === 'player-board') {
+    console.log('computer fires!')
+    console.log(playerState[e.target.id])
+    setTurn()
+  } else {
+    console.log('player fires!')
+    console.log(opponentState[e.target.id])
+    setTurn()
   }
 }
 
 function setBoardState(player, cell) {
 
 }
+
