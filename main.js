@@ -338,20 +338,26 @@ function setComputerBoard() {
   }
 }
 
+function getGameState() {
+  let gameState = 0
+  for (let ship in playerState.ships) {
+    const shipState = playerState.ships[ship].every((cell) => playerState[cell] === -1)
+    if (shipState) gameState++
+  }
 
+  if (gameState === 5) {
+    return true
+  }
+
+  return false
+}
 
 function getState(e) {
-  
-  let gameState = 0
-  
-  
   if (activeBoard === 'player-board') {
     for (let ship in playerState.ships) {
-      const isSunk = playerState.ships[ship].every((cell) => playerState[cell] === -1)
-      console.log(ship, isSunk)
-      if (isSunk) gameState++
-
+      
       if (playerState.ships[ship].includes(e.target.id)) {
+        const isSunk = playerState.ships[ship].every((cell) => playerState[cell] === -1)
         if (isSunk) {
           // playerState.ships[ship] = false
           return [ship, 'destroyed']
@@ -405,6 +411,7 @@ function fire(e) {
       playerState[e.target.id] = 2
       console.log('MISS!')
     }
+    if (getGameState()) console.log('Player Wins!')
     setTurn()
 
   // player turn
@@ -427,6 +434,7 @@ function fire(e) {
       opponentState[e.target.id] = 2
       console.log('MISS!')
     }
+    if (getGameState()) console.log('Computer Wins!')
     setTurn()
   }
 }
