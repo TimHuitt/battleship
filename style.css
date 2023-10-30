@@ -25,10 +25,8 @@ body {
 }
 main {
   display: flex;
-  width: 100vmin;
-  min-width: 95vmin;
-  height: 75vmin;
-  max-height: 75vmin;
+  width: 120vmin;
+  height: 85vmin;
   flex-direction: row;
 }
 
@@ -133,11 +131,12 @@ main {
   justify-content: center;
   align-items: center;
   width: 100%;
-  height: 35vmin;
+  height: 30vmin;
   font-size: 1.5vmin;
 }
 #opponent-board {
   display: grid;
+  position: relative;
   width: 95%;
   height: 95%;
   border: 3px solid var(--light);
@@ -145,6 +144,15 @@ main {
   grid-template-columns: repeat(10, 1fr);
   grid-template-rows: repeat(10, 1fr);
   overflow: hidden;
+}
+#opponent-board::after {
+  content: "Computer";
+  position: absolute;
+  bottom: 0;
+  right: 2%;
+  font-size: 2rem;
+  text-align: center;
+  color: var(--lightgreen);
 }
 .cell {
   border: 1px solid var(--lightgreen);
@@ -213,8 +221,7 @@ main {
   display: flex;
   justify-content: center;
   align-items: center;
-  width: 70%;
-  min-width: 70%;
+  min-width: 75%;
   height: 100%;
 }
 #large-board-wrapper {
@@ -226,6 +233,7 @@ main {
 }
 #player-board {
   display: grid;
+  position: relative;
   width: 95%;
   height: 95%;
   border: 5px solid var(--light);
@@ -235,6 +243,15 @@ main {
   overflow: hidden;
 }
 
+#player-board::after {
+  content: "Player";
+  position: absolute;
+  bottom: 0;
+  right: 2%;
+  font-size: 2rem;
+  text-align: center;
+  color: var(--lightgreen);
+}
 #player-stats-wrapper {
   display: none;
 }
