@@ -55,7 +55,7 @@ let winner
 let initialize
 
 // debug
-let showOpponentPieces = true
+let showOpponentPieces = false
 
 
 //*----- cached elements  -----*//
@@ -97,7 +97,8 @@ init()
 function init() {
   activeBoard = 'player-board'
   winner = false;
-  initialize = true;
+  initializing = true;
+  
   // render player
   renderBoard(playerBoardEl)
   renderPlayerShips()
@@ -111,49 +112,12 @@ function init() {
   setShip('cruiser', 'g4', 's')
   setShip('sub', 'i9', 'w')
   setShip('destroyer', 'f6', 'n')
+
   setTurn()
   setComputerBoard()
-
 }
 
 
-
-function renderPlayerShips() {
-  let count = 0
-  for (const ship in ships) {
-    parent = playerShips[count]
-    id = ship
-    cells = ships[ship]
-    
-    for (let i = 0; i < cells; i++) {
-      const cell = new CreateCell(ship + '_' + id, 'ship')
-      parent.appendChild(cell.el)
-    }
-    count++
-  }
-}
-
-function renderBoard(e) {
-  row = 97
-  currentCol = 1
-  for (let i = 1; i <= 100; i++) {
-    currentRow = String.fromCharCode(row)
-    let pos = currentRow + currentCol
-    const cell = new CreateCell(pos, 'cell', pos)
-    e.appendChild(cell.el)
-
-    if (e.id === 'player-board') {
-      playerState[pos] = 0
-    } else if (e.id === 'opponent-board') {
-      opponentState[pos] = 0
-    }
-    if (!(i % 10)) { 
-      row++
-      currentCol -= 10
-    }
-    currentCol++
-  }
-}
 
 //*----- handlers -----*//
 
@@ -195,6 +159,45 @@ function handleShipEvent(e) {
 }
 
 //*----- rendering -----*//
+
+
+
+function renderPlayerShips() {
+  let count = 0
+  for (const ship in ships) {
+    parent = playerShips[count]
+    id = ship
+    cells = ships[ship]
+    
+    for (let i = 0; i < cells; i++) {
+      const cell = new CreateCell(ship + '_' + id, 'ship')
+      parent.appendChild(cell.el)
+    }
+    count++
+  }
+}
+
+function renderBoard(e) {
+  row = 97
+  currentCol = 1
+  for (let i = 1; i <= 100; i++) {
+    currentRow = String.fromCharCode(row)
+    let pos = currentRow + currentCol
+    const cell = new CreateCell(pos, 'cell', pos)
+    e.appendChild(cell.el)
+
+    if (e.id === 'player-board') {
+      playerState[pos] = 0
+    } else if (e.id === 'opponent-board') {
+      opponentState[pos] = 0
+    }
+    if (!(i % 10)) { 
+      row++
+      currentCol -= 10
+    }
+    currentCol++
+  }
+}
 
 // row and column highlight on hover
 // type: 1/0 = add/remove
@@ -358,6 +361,7 @@ function setComputerBoard() {
       }
     }
   }
+  initializing = false
 }
 
 // todo: simplify
@@ -497,12 +501,11 @@ function setTurn() {
   if (activeBoard === 'player-board') {
     smallBoardEl.appendChild(opponentBoardEl)
     largeBoardEl.appendChild(playerBoardEl)
+    const targetCell = playerBoardEl.querySelector(`#${computerChoice()}`)
+    if (!initializing) fire(targetCell)
   } else {
     smallBoardEl.appendChild(playerBoardEl)
     largeBoardEl.appendChild(opponentBoardEl)
-    // const targetCell = playerBoardEl.querySelector(`#${computerChoice()}`)
-    // if (!initialize) fire(targetCell)
-    // initialize = false
   }
 }
 
@@ -517,7 +520,7 @@ function computerChoice() {
     let row = String.fromCharCode(input[0])
     let col = input[1]
     output = row + col
-    if (playerState[output] >= 0) valid = true
+    if (playerState[output] === 1 || playerState[output] === 0) valid = true
 
   }
 

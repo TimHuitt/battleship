@@ -1,6 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Chakra+Petch&display=swap');
 :root {
-  --lightgreen: rgb(2, 127, 2);
+  --lightgreen: rgb(4, 191, 4);
   --darkgreen: rgb(2, 33, 2);
 
   --blue: rgb(43, 43, 147);
@@ -176,7 +176,7 @@ main {
 .over {
   background-color: var(--darkgreen);
 }
-
+z
 .row-col-highlight {
   background-color: var(--darkgreen);
 }
