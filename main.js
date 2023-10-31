@@ -26,7 +26,7 @@
   // todo: dragging selects/highlights container
   // todo: clicking board name highlights container
   // todo: computer goes first after reinit
-
+  // todo: computer cell selection type error line 561
   
 //*----- constants -----*//
 
@@ -76,13 +76,75 @@ const playerShips = document.querySelectorAll('#player-ships-wrapper > div')
 
 //*----- event listeners -----*//
 
-largeBoardEl.addEventListener('click', handleBoardEvent)
-largeBoardEl.addEventListener('mouseover', handleBoardEvent)
-largeBoardEl.addEventListener('mouseleave', handleBoardEvent)
+function applyListeners() {
+  largeBoardEl.addEventListener('click', handleBoardEvent)
+  largeBoardEl.addEventListener('mouseover', handleBoardEvent)
+  largeBoardEl.addEventListener('mouseleave', handleBoardEvent)
 
-playerShipsEl.addEventListener('click', handleShipEvent)
-playerShipsEl.addEventListener('mouseover', handleShipEvent)
-playerShipsEl.addEventListener('mouseleave', handleShipEvent)
+  playerShipsEl.addEventListener('click', selectShip)
+  playerShipsEl.addEventListener('mouseover', handleShipEvent)
+  playerShipsEl.addEventListener('mouseleave', handleShipEvent)
+}
+function removeListeners() {
+  largeBoardEl.removeEventListener('click', handleBoardEvent)
+  largeBoardEl.removeEventListener('mouseover', handleBoardEvent)
+  largeBoardEl.removeEventListener('mouseleave', handleBoardEvent)
+
+  playerShipsEl.removeEventListener('click', selectShip)
+  playerShipsEl.removeEventListener('mouseover', handleShipEvent)
+  playerShipsEl.removeEventListener('mouseleave', handleShipEvent)
+}
+
+let selectedShip
+let initialShipCell
+let shipDirCell
+
+function selectShip(e) {
+  if (e.target.id.includes('player')) {
+    removeListeners()
+    selectedShip = e.target.id.split('-')[1]
+    largeBoardEl.addEventListener('click', selectShip)
+
+  } else if (!initialShipCell) {
+    initialShipCell = e.target.id
+
+  } else if (!shipDirCell) {
+    shipDirCell = e.target.id
+
+    let startRow = initialShipCell.split('')[0]
+    let startCol = parseInt(initialShipCell.slice(1))
+    startRow = startRow.charCodeAt(0) // a - j: 97 - 106
+
+    let endRow = shipDirCell.split('')[0]
+    let endCol = parseInt(shipDirCell.slice(1))
+    endRow = endRow.charCodeAt(0) // a - j: 97 - 106
+    console.log(startRow, endRow, startCol, endCol) // e2 e3 -> 101 101 2 3
+
+    if (endRow - startRow < 0) {
+      dir = 'n'
+    } else if (endRow - startRow > 0) {
+      dir = 's'
+    } else if (endCol - startCol < 0) {
+      dir = 'w'
+    } else if (endCol - startCol > 0) {
+      dir = 'e'
+    }
+    
+    if (setShip(selectedShip, initialShipCell, dir)) {
+      console.log(`${selectedShip} assigned to board`)
+    } else {
+      console.log('invalid placement. try again')
+    }
+
+
+    largeBoardEl.removeEventListener('click', selectShip)
+    applyListeners()
+    selectedShip = ''
+    initialShipCell = ''
+    shipDirCell = ''
+  }
+
+}
 
 //*----- classes -----*//
 
@@ -125,6 +187,7 @@ function init() {
 
   setTurn()
   setComputerBoard()
+  applyListeners()
 }
 
 
@@ -133,9 +196,11 @@ function init() {
 
 function handleBoardEvent(e) {
   if (e.type === 'click') fire(e.target)
+
   if (e.type === 'mouseover' && !e.target.id.includes('board')) {
     renderCellHighlights(1, e)
   }
+
   if (e.type === 'mouseleave') {
     renderCellHighlights(0, e)
   }
@@ -215,7 +280,6 @@ function renderCellHighlights(type, e) {
   const boardCells = document.querySelectorAll('.cell')
   const currentRow = e.target.id.split('')[0]
   const currentCol = e.target.id.slice(1)
-
   // type = 1: add row/col highlighting
   if (type) {
     renderCellHighlights(0, e)
@@ -230,6 +294,7 @@ function renderCellHighlights(type, e) {
             cell.id.split('')[0] !== currentRow) {
               return
         }
+        
         cell.classList.add('row-col-highlight')
       }
     })
@@ -243,6 +308,7 @@ function renderCellHighlights(type, e) {
 }
 
 //*----- setters -----*//
+
 
 // set set board ship data
 // directions: n, e, s, w
@@ -259,8 +325,9 @@ function setShip(ship, cell, direction) {
   let nextCell
 
   let valid = isValid(ship, direction, currentChar, currentCol)
-  if (!valid) return console.log(activeBoard, ship, direction, String.fromCharCode(currentChar) + currentCol, "invalid placement")
+  if (!valid) return false
 
+  // set up initial cell
   if (activeBoard === 'player-board') {
     currentCell.classList.add('placed')
     playerState[cell] = 1
@@ -268,7 +335,6 @@ function setShip(ship, cell, direction) {
     if (showOpponentPieces) currentCell.classList.add('placed')
     opponentState[cell] = 1
   }
-
   cellRange.push(cell)
 
   // check if ship fits within boundries
@@ -305,6 +371,7 @@ function setShip(ship, cell, direction) {
   } else {
     opponentState['ships'][ship] = cellRange
   }
+  return true
 }
 
 // check if ship orientation is valid
@@ -329,19 +396,11 @@ function isValid(ship, dir, row, col) {
 
 // todo: complete function
 // check current ship location for overlap
-// ([ship name], [direction letter], [row char number], [column number])
-// (str, str, int, int)
-// ('battleship', 's', 97, 4)
-function isOverlap(ship, dir, row, col) {
-  const cell = row + col
-  for (let i = 0; i < ships[ship]; i++) {
-  }
-
-  if (activeBoard === 'player-board') {
-    if (playerState[cell] > 0) return false
-  } else {
-    if (opponentState[cell] > 0) return false
-  }
+// ([ship name], [row char number], [column number])
+// (str, int, int)
+// ('battleship', 97, 4)
+function isOverlap(posArr) {
+  // console.log(posArr)
 }
 
 
@@ -355,6 +414,7 @@ function getRandomData() {
 // randomly search ship starting positions
 // set ship if position is valid
 function setComputerBoard() {
+  let posArr = []
   for (let ship in ships) {
     let valid = false
     let overlap = false
@@ -364,12 +424,14 @@ function setComputerBoard() {
       let randomCol = getRandomData()[1]
       let randomDir = getRandomData()[2]
       valid = isValid(ship, randomDir, randomRow, randomCol)
-      overlap = isOverlap(ship, randomRow, randomCol)
+      overlap = isOverlap(posArr)
       if (valid && !overlap) {
         setShip(ship, String.fromCharCode(randomRow) + randomCol, randomDir)
       }
     }
+    posArr = posArr.concat(opponentState.ships[ship])
   }
+  // console.log(posArr)
   initialize = false
 }
 
