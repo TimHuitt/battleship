@@ -2,6 +2,7 @@
 :root {
   --lightgreen: rgb(4, 191, 4);
   --darkgreen: rgb(5, 65, 5);
+  --darkalpha: rgba(5, 65, 5, 0.7);
   --darkergreen: rgb(3, 37, 3);
 
   --blue: rgb(10, 60, 27);
@@ -242,7 +243,6 @@ main {
   justify-content: center;
   align-items: center;
   min-width: 75%;
-  height: 100%;
 }
 #large-board-wrapper {
   display: flex;
@@ -262,7 +262,6 @@ main {
   grid-template-rows: repeat(10, 1fr);
   overflow: hidden;
 }
-
 #player-board::after {
   content: "Player";
   position: absolute;
@@ -273,13 +272,36 @@ main {
   color: var(--lightgreen);
   pointer-events: none;
 }
+
 #player-stats-wrapper {
   display: none;
 }
+
+
+.toast {
+  position: absolute;
+  display: none;
+  height: 10vmin;
+  width: 30vmin;
+  margin: 1vmin;
+  border: 3px solid var(--lightgreen);
+  border-radius: 1vmin;
+  background: var(--darkalpha);
+  backdrop-filter: blur(4px);
+  justify-content: center;
+  align-items: center;
+}
+
 .center {
   display: flex;
   justify-content: center;
   align-items: center;
+}
+.show {
+  display: flex;
+}
+.hide {
+  display: none;
 }
 .disable {
   pointer-events: none;

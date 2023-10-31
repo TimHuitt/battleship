@@ -130,6 +130,49 @@ class CreateCell {
   }
 }
 
+
+const activeToasts = []
+
+class Toast {
+  constructor() {
+    this.body = document.querySelector('body')
+    this.el = document.createElement('div')
+    this.el.classList.add('toast')
+    this.el.setAttribute('id', `toast${activeToasts.length}`)
+    this.el.dataset.translate = 0
+    this.body.appendChild(this.el)
+    activeToasts.push(this.el)
+  }
+
+  show(msg, timeout) {
+    this.el.innerText = msg + ` --(${this.el.id})`
+    this.el.classList.add('show')
+    
+    for (const existingEl of activeToasts) {
+      if (existingEl !== this.el) {
+        const currentShift = existingEl.dataset.translate
+        this.el.dataset.translate = currentShift + 110
+        existingEl.style.transform = `translateY(${currentShift + 110}%)`
+      }
+    }
+
+    setTimeout(() => { this.hide()}, timeout)
+  }
+
+  hide() {
+    this.el.classList.remove('show')
+  }
+}
+
+
+// new Toast().show('testing')
+new Toast().show('testing 1', 3000)
+setTimeout(() => {
+  new Toast().show('testing 2', 3000)
+
+}, 2000)
+
+
 //*----- initialization -----*//
 
 init()
@@ -613,6 +656,8 @@ function clearBoards(element) {
     })
   }
 }
+
+
 
 function toast(type, ship) {
   const otherPlayer = (activeBoard.split('-')[0] === 'player') ? playerName : opponentName
