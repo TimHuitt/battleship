@@ -20,6 +20,8 @@
 // todo: Bugs
   // todo: dragging bubbles
   // todo: clicking board name bubbles
+  // todo: board listeners active after new game start (before ship placement completes)
+  // todo: ship selection lost on try again
 
 //*----- constants -----*//
 
@@ -67,7 +69,7 @@ let opponentName = 'Computer'
 
 //! debug
 let showOpponentPieces = true
-let enableComputer = false
+let enableComputer = true
 //!
 
 

@@ -1,10 +1,10 @@
 @import url('https://fonts.googleapis.com/css2?family=Chakra+Petch&display=swap');
 :root {
   --lightgreen: rgb(4, 191, 4);
-  --darkgreen: rgb(5, 64, 5);
+  --darkgreen: rgb(5, 65, 5);
   --darkergreen: rgb(3, 37, 3);
 
-  --blue: rgb(8, 42, 20);
+  --blue: rgb(10, 60, 27);
 
   --light: rgb(55, 207, 124);
 }
