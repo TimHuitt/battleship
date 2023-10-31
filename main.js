@@ -62,6 +62,9 @@ let hits
 let misses
 let sunk
 
+let playerName = 'Player'
+let opponentName = 'Computer'
+
 //! debug
 let showOpponentPieces = true
 let enableComputer = false
@@ -612,10 +615,9 @@ function clearBoards(element) {
 }
 
 function toast(type, ship) {
-  const otherPlayer = activeBoard.split('-')[0]
-  const thisPlayer = (otherPlayer === 'player') ? 'computer' : 'player'
-  
-
+  const otherPlayer = (activeBoard.split('-')[0] === 'player') ? playerName : opponentName
+  const thisPlayer = (otherPlayer === 'player') ? opponentName : playerName
+ 
   if (type === 'fire') {
     console.log(`${thisPlayer} fires!`)
   } else if (type === 'hit') {
