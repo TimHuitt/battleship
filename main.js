@@ -67,7 +67,7 @@ let opponentName = 'Computer'
 
 //! debug
 let showOpponentPieces = true
-let enableComputer = false
+let enableComputer = true
 //!
 
 
