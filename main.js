@@ -22,6 +22,12 @@
   // todo: add board switch animation
   // todo: fade in/out messages (player select, turn, sink, win)
 
+// todo: Bugs
+  // todo: dragging selects/highlights container
+  // todo: clicking board name highlights container
+  // todo: computer goes first after reinit
+
+  
 //*----- constants -----*//
 
 // list all player cells and thier state
@@ -55,8 +61,8 @@ let winner
 let initialize
 
 // debug
-let showOpponentPieces = false
-
+let showOpponentPieces = true
+let enableComputer = true
 
 //*----- cached elements  -----*//
 
@@ -95,10 +101,14 @@ class CreateCell {
 init()
 
 function init() {
+  
   activeBoard = 'player-board'
   winner = false;
-  initializing = true;
+  initialize = true;
+
   
+  
+  clearBoards()  
   // render player
   renderBoard(playerBoardEl)
   renderPlayerShips()
@@ -122,14 +132,13 @@ function init() {
 //*----- handlers -----*//
 
 function handleBoardEvent(e) {
-  if (e.type === 'click') fire(e.target) // !
+  if (e.type === 'click') fire(e.target)
   if (e.type === 'mouseover' && !e.target.id.includes('board')) {
     renderCellHighlights(1, e)
   }
   if (e.type === 'mouseleave') {
     renderCellHighlights(0, e)
   }
-  
 }
 
 function handleShipEvent(e) {
@@ -361,7 +370,7 @@ function setComputerBoard() {
       }
     }
   }
-  initializing = false
+  initialize = false
 }
 
 // todo: simplify
@@ -382,10 +391,23 @@ function getGameState() {
   }
 
   if (gameState === 5) {
-    return true
+    init()
+    return
   }
 
   return false
+}
+
+function clearBoards() {
+  playerBoardEl.innerHTML = ''
+  opponentBoardEl.innerHTML = ''
+  playerShips.forEach((cell) => {
+    var child = cell.lastElementChild
+    while (child) {
+      cell.removeChild(child);
+      child = cell.lastElementChild
+    }
+  })
 }
 
 // todo: simplify
@@ -501,8 +523,10 @@ function setTurn() {
   if (activeBoard === 'player-board') {
     smallBoardEl.appendChild(opponentBoardEl)
     largeBoardEl.appendChild(playerBoardEl)
-    const targetCell = playerBoardEl.querySelector(`#${computerChoice()}`)
-    if (!initializing) fire(targetCell)
+    if (enableComputer) {
+      const targetCell = playerBoardEl.querySelector(`#${computerChoice()}`)
+      if (!initialize) fire(targetCell)
+    }
   } else {
     smallBoardEl.appendChild(playerBoardEl)
     largeBoardEl.appendChild(opponentBoardEl)
@@ -512,18 +536,15 @@ function setTurn() {
 
 
 function computerChoice() {
-
   let valid = false
+
   while (!valid) {
-    
     let input = getRandomData()
     let row = String.fromCharCode(input[0])
     let col = input[1]
     output = row + col
     if (playerState[output] === 1 || playerState[output] === 0) valid = true
-
   }
-
   return output
 }
 

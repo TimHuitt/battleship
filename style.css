@@ -150,7 +150,7 @@ main {
   position: absolute;
   bottom: 0;
   right: 2%;
-  font-size: 2rem;
+  font-size: 3vmin;
   text-align: center;
   color: var(--lightgreen);
 }
@@ -248,9 +248,10 @@ z
   position: absolute;
   bottom: 0;
   right: 2%;
-  font-size: 2rem;
+  font-size: 3vmin;
   text-align: center;
   color: var(--lightgreen);
+  pointer-events: none;
 }
 #player-stats-wrapper {
   display: none;
