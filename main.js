@@ -20,6 +20,7 @@
 // todo: Bugs
   // todo: board listeners active after new game start (before ship placement completes)
   // todo: ship selection lost on try again
+  // todo: ship selection lost on click (no dir passed)
 
 //*----- constants -----*//
 
@@ -130,7 +131,6 @@ class CreateCell {
   }
 }
 
-
 const activeToasts = []
 
 class Toast {
@@ -150,13 +150,13 @@ class Toast {
     
     for (const existingEl of activeToasts) {
       if (existingEl !== this.el) {
-        const currentShift = existingEl.dataset.translate
-        this.el.dataset.translate = currentShift + 110
+        const currentShift = parseInt(existingEl.dataset.translate)
         existingEl.style.transform = `translateY(${currentShift + 110}%)`
+        existingEl.dataset.translate = currentShift + 110
       }
     }
 
-    setTimeout(() => { this.hide()}, timeout)
+    setTimeout(() => { this.hide() }, timeout)
   }
 
   hide() {
@@ -165,12 +165,17 @@ class Toast {
 }
 
 
-// new Toast().show('testing')
-new Toast().show('testing 1', 3000)
+new Toast().show('testing 1', 5000)
+
 setTimeout(() => {
-  new Toast().show('testing 2', 3000)
+  new Toast().show('testing 2', 5000)
 
 }, 2000)
+
+setTimeout(() => {
+  new Toast().show('testing 3', 3000)
+
+}, 3000)
 
 
 //*----- initialization -----*//
