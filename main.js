@@ -57,7 +57,6 @@ const ships = {
 //*----- state variables -----*//
 
 let activeBoard
-let winner
 let initialize
 
 let selectedShip
@@ -94,15 +93,16 @@ function applyListeners() {
   largeBoardEl.addEventListener('mouseover', handleBoardEvent)
   largeBoardEl.addEventListener('mouseleave', handleBoardEvent)
 }
-function applyShipListeners() {
-  playerShipsEl.addEventListener('click', selectShip)
-  playerShipsEl.addEventListener('mouseover', handleShipEvent)
-  playerShipsEl.addEventListener('mouseleave', handleShipEvent)
-}
 function removeListeners() {
   largeBoardEl.removeEventListener('click', handleBoardEvent)
   largeBoardEl.removeEventListener('mouseover', handleBoardEvent)
   largeBoardEl.removeEventListener('mouseleave', handleBoardEvent)
+}
+
+function applyShipListeners() {
+  playerShipsEl.addEventListener('click', selectShip)
+  playerShipsEl.addEventListener('mouseover', handleShipEvent)
+  playerShipsEl.addEventListener('mouseleave', handleShipEvent)
 }
 function removeShipListeners() {
   playerShipsEl.removeEventListener('click', selectShip)
@@ -135,17 +135,21 @@ class CreateCell {
 //*----- initialization -----*//
 
 init()
-
+// todo: on reset, remove ship wrapper text, switch to player turn
 function init() {
-  activeBoard = 'player-board'
-  winner = false;
   initialize = true;
+  if (!activeBoard) activeBoard = 'player-board'
+  if (activeBoard === 'opponent-board') setTurn()
   playerState = {...playerStateTemplate}
+  playerState.ships = {...playerStateTemplate.ships}
   opponentState = {...opponentStateTemplate}
+  opponentState.ships = {...opponentStateTemplate.ships}
   shots = 0
   hits = 0
   misses = 0
   sunk = 0
+  
+  setStats(1)
   clearBoards()
   renderBoard(playerBoardEl)
   renderPlayerShips()
@@ -170,10 +174,11 @@ function beginTurn() {
   console.log('place your ships')
 
   let shipsLen = 0
+  console.log(playerState)
   for (ship in playerState.ships) {
     shipsLen++
   }
-
+  console.log("length: ", shipsLen)
   if (shipsLen !== 5) {
     return
   } else {
@@ -280,17 +285,24 @@ function selectShip(e) {
 }
 
 
-
-function setStats() {
+// set player stats in ship container
+// 1 = reset
+function setStats(reset) {
   var children = playerShipsEl.querySelectorAll('div')
-  const text = [`Player Stats`, 
-                `Shots <span>${shots}</span>`, 
-                `Hits <span>${hits}</span>`, 
-                `Misses <span>${misses}</span>`, 
-                `Ships Sunk <span>${sunk}</span>`]
-  children.forEach((child, index) => {
-    child.innerHTML = text[index]
-  })
+  if (reset) {
+    children.forEach((child, index) => {
+      child.innerHTML = ''
+    })
+  } else {
+    const text = [`Player Stats`, 
+                  `Shots <span>${shots}</span>`, 
+                  `Hits <span>${hits}</span>`, 
+                  `Misses <span>${misses}</span>`, 
+                  `Ships Sunk <span>${sunk}</span>`]
+    children.forEach((child, index) => {
+      child.innerHTML = text[index]
+    })
+  }
 }
 
 function renderPlayerShips() {
@@ -510,7 +522,6 @@ function getGameState() {
   }
 
   if (gameState === 5) {
-    init()
     return true
   }
 
@@ -601,6 +612,7 @@ function fire(e) {
     console.log('computer fires!')
     if (playerState[e.id] === 1) {
       playerState[e.id] = -1
+      renderShot(e, 'hit')
 
       const getShip = getShipState(e)
       if (getShip[1] === 'destroyed') {
@@ -608,7 +620,7 @@ function fire(e) {
       } else {
         console.log('HIT!')
       }
-      renderShot(e, 'hit')
+      if (getGameState()) console.log('Computer Wins!')
 
     } else if (playerState[e.id] === -1 || 
       playerState[e.id] === 2) {
@@ -620,7 +632,6 @@ function fire(e) {
       renderShot(e, 'miss')
     }
 
-    if (getGameState()) console.log('Computer Wins!')
 
   // player turn
   } else {
@@ -637,6 +648,8 @@ function fire(e) {
         console.log(`computer: you sunk my ${getShip[0]}`)
       }
 
+      if (getGameState()) console.log('player Wins!')
+
     } else if (opponentState[e.id] === -1 || 
               opponentState[e.id] === 2) {
       console.log('Try Again...') 
@@ -647,8 +660,8 @@ function fire(e) {
       console.log('MISS!')
       renderShot(e, 'miss')
     }
-    if (getGameState()) console.log('player Wins!')
   }
+  if (getGameState()) init()
   setTurn()
   return true
 }
