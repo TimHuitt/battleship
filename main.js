@@ -131,52 +131,29 @@ class CreateCell {
   }
 }
 
-const activeToasts = []
+const toastContainer = document.querySelector('#toast-container')
 
 class Toast {
   constructor() {
-    this.body = document.querySelector('body')
     this.el = document.createElement('div')
     this.el.classList.add('toast')
-    this.el.setAttribute('id', `toast${activeToasts.length}`)
-    this.el.dataset.translate = 0
-    this.body.appendChild(this.el)
-    activeToasts.push(this.el)
   }
 
-  show(msg, timeout) {
-    this.el.innerText = msg + ` --(${this.el.id})`
-    this.el.classList.add('show')
+  show(msg, delay = 0, timeout = 3000) {
+    setTimeout(() => {
+      this.el.innerHTML = msg
+      this.el.classList.add('show')
+      toastContainer.appendChild(this.el)
+      
+      setTimeout(() => { this.hide() }, timeout)
+    }, delay)
     
-    for (const existingEl of activeToasts) {
-      if (existingEl !== this.el) {
-        const currentShift = parseInt(existingEl.dataset.translate)
-        existingEl.style.transform = `translateY(${currentShift + 110}%)`
-        existingEl.dataset.translate = currentShift + 110
-      }
-    }
-
-    setTimeout(() => { this.hide() }, timeout)
   }
 
   hide() {
     this.el.classList.remove('show')
   }
 }
-
-
-new Toast().show('testing 1', 5000)
-
-setTimeout(() => {
-  new Toast().show('testing 2', 5000)
-
-}, 2000)
-
-setTimeout(() => {
-  new Toast().show('testing 3', 3000)
-
-}, 3000)
-
 
 //*----- initialization -----*//
 
@@ -209,12 +186,22 @@ function init() {
   // setShip('destroyer', 'f6', 'n')
   //!
 
+  new Toast().show(`Welcome to Battleship!`)
+  setTimeout(() => {
+    new Toast().show(`
+    <h3> Ship Setup </h3>
+    <p>1. Select a ship</p>
+    <p>2. Click and drag to place</p>
+    `)
+  }, 2000)
+
   beginTurn()
 }
 
 function beginTurn() {
   if (activeBoard === 'opponent-board') setTurn()
-  console.log('place your ships')
+
+  
 
   let shipsLen = 0
   for (ship in playerState.ships) {
@@ -308,11 +295,11 @@ function selectShip(e) {
     }
     
     if (selectedShip && initialShipCell && setShip(selectedShip, initialShipCell, dir)) {
-      console.log(`${selectedShip} assigned to board`)
+      new Toast().show(`${selectedShip} assigned to board`)
       shipEl = document.querySelector(`#player-${selectedShip}`)
       clearBoards(shipEl)
     } else {
-      console.log('invalid placement. try again')
+      new Toast().show('invalid placement. try again')
     }
 
     largeBoardEl.removeEventListener('click', selectShip)
@@ -664,20 +651,20 @@ function clearBoards(element) {
 
 
 
-function toast(type, ship) {
+function setToast(type, ship) {
   const otherPlayer = (activeBoard.split('-')[0] === 'player') ? playerName : opponentName
   const thisPlayer = (otherPlayer === 'player') ? opponentName : playerName
  
   if (type === 'fire') {
-    console.log(`${thisPlayer} fires!`)
+    new Toast().show(`${thisPlayer} fires!`)
   } else if (type === 'hit') {
-    console.log('HIT!')
+    new Toast().show('HIT!', 1000)
   } else if (type === 'miss') {
-    console.log('MISS!')
+    new Toast().show('MISS!', 1000)
   } else if (type === 'destroy') {
-    console.log(`${otherPlayer}: you sunk my ${ship}`)
+    new Toast().show(`${otherPlayer}: you sunk my ${ship}`, 2000)
   } else if (type === 'win') {
-    console.log(`${thisPlayer} WINS!`)
+    new Toast().show(`${thisPlayer} WINS!`, 3000)
   } else {
 
   }
@@ -692,54 +679,54 @@ function toast(type, ship) {
 function fire(e) {
   // computer turn
   if (activeBoard === 'player-board') {
-    toast('fire')
+    setToast('fire')
     if (playerState[e.id] === 1) {
       playerState[e.id] = -1
       renderShot(e, 'hit')
 
       const getShip = getShipState(e)
       if (getShip[1] === 'destroyed') {
-        toast('destroy', getShip[0])
+        setToast('destroy', getShip[0])
       } else {
-        toast('hit')
+        setToast('hit')
       }
-      if (getGameState()) toast('win')
+      if (getGameState()) setToast('win')
 
     } else if (playerState[e.id] === -1 || 
       playerState[e.id] === 2) {
-        toast()
+        setToast('Invalid selection... Try again')
       return false
     } else {
       playerState[e.id] = 2
-      toast('miss')
+      setToast('miss')
       renderShot(e, 'miss')
     }
 
   // player turn
   } else {
-    toast('fire')
+    setToast('fire')
 
     // if cell is occupied
     if (opponentState[e.id] === 1) {
       opponentState[e.id] = -1
-      toast('hit')
+      setToast('hit')
       renderShot(e, 'hit')
 
       const getShip = getShipState(e)
       if (getShip[1] === 'destroyed') {
-        toast('destroy', getShip[0])
+        setToast('destroy', getShip[0])
       }
 
-      if (getGameState()) toast('win')
+      if (getGameState()) setToast('win')
 
     } else if (opponentState[e.id] === -1 || 
               opponentState[e.id] === 2) {
-      toast()
+      setToast('Invalid selection... Try again')
       return false
 
     } else {
       opponentState[e.id] = 2
-      toast('miss')
+      setToast('miss')
       renderShot(e, 'miss')
     }
   }

@@ -11,6 +11,7 @@
 }
 * {
   box-sizing: border-box;
+  user-select: none;
 }
 body {
   display: flex;
@@ -277,19 +278,38 @@ main {
   display: none;
 }
 
-
-.toast {
+#toast-container {
   position: absolute;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column-reverse;
+  width: 40%;
+  height: 100vh;
+  pointer-events: none;
+}
+.toast {
+  position: relative;
   display: none;
-  height: 10vmin;
   width: 30vmin;
   margin: 1vmin;
+  padding: 1vmin;
   border: 3px solid var(--lightgreen);
   border-radius: 1vmin;
   background: var(--darkalpha);
   backdrop-filter: blur(4px);
   justify-content: center;
   align-items: center;
+  flex-direction: column;
+  pointer-events: none;
+}
+.toast h3 {
+  padding: 0;
+  margin: .5vmin;
+}
+.toast p {
+  padding: 0;
+  margin: .25vmin;
 }
 
 .center {
