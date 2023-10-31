@@ -18,8 +18,6 @@
   // todo: fade in/out messages (player select, turn, sink, win)
 
 // todo: Bugs
-  // todo: dragging bubbles
-  // todo: clicking board name bubbles
   // todo: board listeners active after new game start (before ship placement completes)
   // todo: ship selection lost on try again
 
@@ -191,9 +189,9 @@ function beginTurn() {
 //*----- handlers -----*//
 
 function handleBoardEvent(e) {
-  if (e.type === 'click') fire(e.target)
+  if (e.type === 'click' && !e.target.id.includes('wrapper')) fire(e.target)
 
-  if (e.type === 'mouseover' && !e.target.id.includes('board')) {
+  if (e.type === 'mouseover' && !e.target.id.includes('wrapper')) {
     renderCellHighlights(1, e)
   }
 
@@ -232,15 +230,15 @@ function handleShipEvent(e) {
 
 
 function selectShip(e) {
-  if (e.target.id.includes('player')) {
+  if (e.target.id.includes('player') && !e.target.id.includes('wrapper')) {
     removeListeners()
     addInitListeners()
     selectedShip = e.target.id.split('-')[1]
 
-  } else if (!initialShipCell) {
+  } else if (!initialShipCell && !e.target.id.includes('wrapper')) {
     initialShipCell = e.target.id
 
-  } else if (!shipDirCell) {
+  } else if (!shipDirCell && !e.target.id.includes('wrapper')) {
     shipDirCell = e.target.id
 
     let startRow = initialShipCell.split('')[0]
