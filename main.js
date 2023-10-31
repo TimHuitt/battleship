@@ -34,13 +34,13 @@
 // 1 = occupied
 // 0 = empty
 // -1 = hit
-const playerState = {
+const playerStateTemplate = {
   // active ships and their location
   ships: {}
 }
 
 // list all opponent cells and thier state
-const opponentState = {
+const opponentStateTemplate = {
   ships: {}
 }
 
@@ -80,7 +80,8 @@ function applyListeners() {
   largeBoardEl.addEventListener('click', handleBoardEvent)
   largeBoardEl.addEventListener('mouseover', handleBoardEvent)
   largeBoardEl.addEventListener('mouseleave', handleBoardEvent)
-
+}
+function applyShipListeners() {
   playerShipsEl.addEventListener('click', selectShip)
   playerShipsEl.addEventListener('mouseover', handleShipEvent)
   playerShipsEl.addEventListener('mouseleave', handleShipEvent)
@@ -99,52 +100,6 @@ let selectedShip
 let initialShipCell
 let shipDirCell
 
-function selectShip(e) {
-  if (e.target.id.includes('player')) {
-    removeListeners()
-    selectedShip = e.target.id.split('-')[1]
-    largeBoardEl.addEventListener('click', selectShip)
-
-  } else if (!initialShipCell) {
-    initialShipCell = e.target.id
-
-  } else if (!shipDirCell) {
-    shipDirCell = e.target.id
-
-    let startRow = initialShipCell.split('')[0]
-    let startCol = parseInt(initialShipCell.slice(1))
-    startRow = startRow.charCodeAt(0) // a - j: 97 - 106
-
-    let endRow = shipDirCell.split('')[0]
-    let endCol = parseInt(shipDirCell.slice(1))
-    endRow = endRow.charCodeAt(0) // a - j: 97 - 106
-    console.log(startRow, endRow, startCol, endCol) // e2 e3 -> 101 101 2 3
-
-    if (endRow - startRow < 0) {
-      dir = 'n'
-    } else if (endRow - startRow > 0) {
-      dir = 's'
-    } else if (endCol - startCol < 0) {
-      dir = 'w'
-    } else if (endCol - startCol > 0) {
-      dir = 'e'
-    }
-    
-    if (setShip(selectedShip, initialShipCell, dir)) {
-      console.log(`${selectedShip} assigned to board`)
-    } else {
-      console.log('invalid placement. try again')
-    }
-
-
-    largeBoardEl.removeEventListener('click', selectShip)
-    applyListeners()
-    selectedShip = ''
-    initialShipCell = ''
-    shipDirCell = ''
-  }
-
-}
 
 //*----- classes -----*//
 
@@ -167,7 +122,8 @@ function init() {
   activeBoard = 'player-board'
   winner = false;
   initialize = true;
-
+  playerState = {...playerStateTemplate}
+  opponentState = {...opponentStateTemplate}
   
   
   clearBoards()  
@@ -176,21 +132,29 @@ function init() {
   renderPlayerShips()
   // render opponent
   renderBoard(opponentBoardEl)
-
-
-  // todo: remove manual gameplay
-  setShip('carrier', 'b5', 'w')
-  setShip('battleship', 'f8', 'n')
-  setShip('cruiser', 'g4', 's')
-  setShip('sub', 'i9', 'w')
-  setShip('destroyer', 'f6', 'n')
-
-  setTurn()
-  setComputerBoard()
-  applyListeners()
+  
+  applyShipListeners()
+  beginTurn()
 }
 
+function beginTurn() {
+  if (activeBoard === 'opponent-board') setTurn()
+  console.log('place your ships')
 
+  let shipsLen = 0
+  for (ship in playerState.ships) {
+    shipsLen++
+  }
+
+  if (shipsLen !== 5) {
+    return
+  } else {
+    applyListeners()
+    setTurn()
+    setComputerBoard()
+  }
+  
+}
 
 //*----- handlers -----*//
 
@@ -235,6 +199,55 @@ function handleShipEvent(e) {
 //*----- rendering -----*//
 
 
+function selectShip(e) {
+  if (e.target.id.includes('player')) {
+    removeListeners()
+    selectedShip = e.target.id.split('-')[1]
+    largeBoardEl.addEventListener('click', selectShip)
+
+  } else if (!initialShipCell) {
+    initialShipCell = e.target.id
+
+  } else if (!shipDirCell) {
+    shipDirCell = e.target.id
+
+    let startRow = initialShipCell.split('')[0]
+    let startCol = parseInt(initialShipCell.slice(1))
+    startRow = startRow.charCodeAt(0) // a - j: 97 - 106
+
+    let endRow = shipDirCell.split('')[0]
+    let endCol = parseInt(shipDirCell.slice(1))
+    endRow = endRow.charCodeAt(0) // a - j: 97 - 106
+    console.log(startRow, endRow, startCol, endCol) // e2 e3 -> 101 101 2 3
+
+    if (endRow - startRow < 0) {
+      dir = 'n'
+    } else if (endRow - startRow > 0) {
+      dir = 's'
+    } else if (endCol - startCol < 0) {
+      dir = 'w'
+    } else if (endCol - startCol > 0) {
+      dir = 'e'
+    }
+    
+    if (setShip(selectedShip, initialShipCell, dir)) {
+      console.log(`${selectedShip} assigned to board`)
+      shipEl = document.querySelector(`#player-${selectedShip}`)
+      clearBoards(shipEl)
+    } else {
+      console.log('invalid placement. try again')
+    }
+
+
+    largeBoardEl.removeEventListener('click', selectShip)
+    applyShipListeners()
+    selectedShip = ''
+    initialShipCell = ''
+    shipDirCell = ''
+    beginTurn()
+  }
+
+}
 
 function renderPlayerShips() {
   let count = 0
@@ -460,16 +473,24 @@ function getGameState() {
   return false
 }
 
-function clearBoards() {
-  playerBoardEl.innerHTML = ''
-  opponentBoardEl.innerHTML = ''
-  playerShips.forEach((cell) => {
-    var child = cell.lastElementChild
-    while (child) {
-      cell.removeChild(child);
-      child = cell.lastElementChild
-    }
-  })
+function clearBoards(element) {
+  if (element) {
+    var child = element.lastElementChild
+      while (child) {
+        element.removeChild(child);
+        child = element.lastElementChild
+      }
+  } else {
+    playerBoardEl.innerHTML = ''
+    opponentBoardEl.innerHTML = ''
+    playerShips.forEach((cell) => {
+      var child = cell.lastElementChild
+      while (child) {
+        cell.removeChild(child);
+        child = cell.lastElementChild
+      }
+    })
+  }
 }
 
 // todo: simplify
