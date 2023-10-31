@@ -4,6 +4,7 @@
   // computer plays automatically
   // add end game function to finanlize/call init
   // todo: simplify all functions with if(player)else(opponent)
+  // on reset, remove ship wrapper text, switch to player turn
 
 // todo: DOM
   // add player ship selection/placement actions
@@ -120,6 +121,7 @@ function removeInitListeners() {
   largeBoardEl.removeEventListener('mousedown', selectShip)
   largeBoardEl.removeEventListener('mouseup', selectShip)
 }
+
 //*----- classes -----*//
 
 // create new cells with the passed id, class, and inner text
@@ -135,11 +137,10 @@ class CreateCell {
 //*----- initialization -----*//
 
 init()
-// todo: on reset, remove ship wrapper text, switch to player turn
+
 function init() {
   initialize = true;
   if (!activeBoard) activeBoard = 'player-board'
-  if (activeBoard === 'opponent-board') setTurn()
   playerState = {...playerStateTemplate}
   playerState.ships = {...playerStateTemplate.ships}
   opponentState = {...opponentStateTemplate}
@@ -174,11 +175,10 @@ function beginTurn() {
   console.log('place your ships')
 
   let shipsLen = 0
-  console.log(playerState)
   for (ship in playerState.ships) {
     shipsLen++
   }
-  console.log("length: ", shipsLen)
+
   if (shipsLen !== 5) {
     return
   } else {
@@ -216,7 +216,6 @@ function handleShipEvent(e) {
       el.classList.add('over')
     }
     if (e.type === 'click') {
-      console.log(e.target)
       e.target.classList.add('selected')
     }
   }
@@ -255,7 +254,6 @@ function selectShip(e) {
     let endRow = shipDirCell.split('')[0]
     let endCol = parseInt(shipDirCell.slice(1))
     endRow = endRow.charCodeAt(0) // a - j: 97 - 106
-    console.log(startRow, endRow, startCol, endCol) // e2 e3 -> 101 101 2 3
 
     if (endRow - startRow < 0) {
       dir = 'n'
@@ -267,7 +265,7 @@ function selectShip(e) {
       dir = 'e'
     }
     
-    if (setShip(selectedShip, initialShipCell, dir)) {
+    if (selectedShip && initialShipCell && setShip(selectedShip, initialShipCell, dir)) {
       console.log(`${selectedShip} assigned to board`)
       shipEl = document.querySelector(`#player-${selectedShip}`)
       clearBoards(shipEl)
@@ -280,28 +278,6 @@ function selectShip(e) {
     initialShipCell = ''
     shipDirCell = ''
     beginTurn()
-  }
-
-}
-
-
-// set player stats in ship container
-// 1 = reset
-function setStats(reset) {
-  var children = playerShipsEl.querySelectorAll('div')
-  if (reset) {
-    children.forEach((child, index) => {
-      child.innerHTML = ''
-    })
-  } else {
-    const text = [`Player Stats`, 
-                  `Shots <span>${shots}</span>`, 
-                  `Hits <span>${hits}</span>`, 
-                  `Misses <span>${misses}</span>`, 
-                  `Ships Sunk <span>${sunk}</span>`]
-    children.forEach((child, index) => {
-      child.innerHTML = text[index]
-    })
   }
 }
 
@@ -376,8 +352,21 @@ function renderCellHighlights(type, e) {
   }
 }
 
-//*----- setters -----*//
+function renderShot(cell, type) {
+  if (type === 'hit') {
+    cell.classList.remove('placed')
+    cell.style.background = 'red'
+  } else if (type === 'miss') {
+    cell.style.background = 'white'
+  }
+}
 
+function sinkShip() {
+  
+}
+
+
+//*----- setters -----*//
 
 // set set board ship data
 // directions: n, e, s, w
@@ -443,6 +432,128 @@ function setShip(ship, cell, direction) {
   return true
 }
 
+
+
+// set player stats in ship container
+// 1 = reset
+function setStats(reset) {
+  var children = playerShipsEl.querySelectorAll('div')
+  if (reset) {
+    children.forEach((child, index) => {
+      child.innerHTML = ''
+    })
+  } else {
+    const text = [`Player Stats`, 
+                  `Shots <span>${shots}</span>`, 
+                  `Hits <span>${hits}</span>`, 
+                  `Misses <span>${misses}</span>`, 
+                  `Ships Sunk <span>${sunk}</span>`]
+    children.forEach((child, index) => {
+      child.innerHTML = text[index]
+    })
+  }
+}
+
+
+// randomly search ship starting positions
+// set ship if position is valid
+function setComputerBoard() {
+  let posArr = []
+  for (let ship in ships) {
+    let valid = false
+    let overlap = false
+
+    while (!valid && !overlap) {
+      let randomRow = getRandomData()[0]
+      let randomCol = getRandomData()[1]
+      let randomDir = getRandomData()[2]
+      valid = isValid(ship, randomDir, randomRow, randomCol)
+      overlap = isOverlap(posArr)
+      if (valid && !overlap) {
+        setShip(ship, String.fromCharCode(randomRow) + randomCol, randomDir)
+      }
+    }
+    posArr = posArr.concat(opponentState.ships[ship])
+  }
+  // console.log(posArr)
+  initialize = false
+}
+
+// toggle current turn
+function setTurn() {
+  activeBoard = (activeBoard === 'player-board') ? 'opponent-board' : 'player-board'
+  if (activeBoard === 'player-board') {
+    smallBoardEl.appendChild(opponentBoardEl)
+    largeBoardEl.appendChild(playerBoardEl)
+    if (enableComputer) {
+      const targetCell = playerBoardEl.querySelector(`#${computerChoice()}`)
+      if (!initialize) fire(targetCell)
+    }
+  } else {
+    smallBoardEl.appendChild(playerBoardEl)
+    largeBoardEl.appendChild(opponentBoardEl)
+  }
+}
+
+
+//*----- getters -----*//
+
+// todo: simplify
+// check if game has ended
+function getGameState() {
+  let gameState = 0
+  
+  if (activeBoard === 'opponent-board') {
+    for (let ship in opponentState.ships) {
+      const shipState = opponentState.ships[ship].every((cell) => opponentState[cell] === -1)
+      if (shipState) gameState++
+    }
+  } else {
+    for (let ship in playerState.ships) {
+      const shipState = playerState.ships[ship].every((cell) => playerState[cell] === -1)
+      if (shipState) gameState++
+    }
+  }
+
+  if (gameState === 5) {
+    return true
+  }
+
+  return false
+}
+
+// todo: simplify
+// returns struck ship and whether it is hit or destroyed
+function getShipState(e) {
+  if (activeBoard === 'player-board') {
+    for (let ship in playerState.ships) {
+      if (playerState.ships[ship].includes(e.id)) {
+        const isSunk = playerState.ships[ship].every((cell) => playerState[cell] === -1)
+
+        if (isSunk) {
+          return [ship, 'destroyed']
+        }
+        return [ship, 'hit']
+      }
+    }   
+  } else {
+    for (let ship in opponentState.ships) {
+      const isSunk = opponentState.ships[ship].every((cell) => opponentState[cell] === -1)
+      
+      if (opponentState.ships[ship].includes(e.id)) {
+        if (isSunk) {
+          return [ship, 'destroyed']
+        }
+        return [ship, 'hit']
+      }
+      
+    }
+  }
+}
+
+
+//*----- tools -----*//
+
 // check if ship orientation is valid
 // ([ship name], [direction letter], [row char number], [column number])
 // (str, str, int, int)
@@ -480,54 +591,6 @@ function getRandomData() {
   return [randomRow, randomCol, randomDir]
 }
 
-// randomly search ship starting positions
-// set ship if position is valid
-function setComputerBoard() {
-  let posArr = []
-  for (let ship in ships) {
-    let valid = false
-    let overlap = false
-
-    while (!valid && !overlap) {
-      let randomRow = getRandomData()[0]
-      let randomCol = getRandomData()[1]
-      let randomDir = getRandomData()[2]
-      valid = isValid(ship, randomDir, randomRow, randomCol)
-      overlap = isOverlap(posArr)
-      if (valid && !overlap) {
-        setShip(ship, String.fromCharCode(randomRow) + randomCol, randomDir)
-      }
-    }
-    posArr = posArr.concat(opponentState.ships[ship])
-  }
-  // console.log(posArr)
-  initialize = false
-}
-
-// todo: simplify
-// check if game has ended
-function getGameState() {
-  let gameState = 0
-  
-  if (activeBoard === 'opponent-board') {
-    for (let ship in opponentState.ships) {
-      const shipState = opponentState.ships[ship].every((cell) => opponentState[cell] === -1)
-      if (shipState) gameState++
-    }
-  } else {
-    for (let ship in playerState.ships) {
-      const shipState = playerState.ships[ship].every((cell) => playerState[cell] === -1)
-      if (shipState) gameState++
-    }
-  }
-
-  if (gameState === 5) {
-    return true
-  }
-
-  return false
-}
-
 // todo: simplify
 function clearBoards(element) {
   if (element === 'ships') {
@@ -558,55 +621,12 @@ function clearBoards(element) {
 }
 
 // todo: simplify
-// returns struck ship and whether it is hit or destroyed
-function getShipState(e) {
-  if (activeBoard === 'player-board') {
-    for (let ship in playerState.ships) {
-      if (playerState.ships[ship].includes(e.id)) {
-        const isSunk = playerState.ships[ship].every((cell) => playerState[cell] === -1)
-
-        if (isSunk) {
-          return [ship, 'destroyed']
-        }
-        return [ship, 'hit']
-      }
-    }   
-  } else {
-    for (let ship in opponentState.ships) {
-      const isSunk = opponentState.ships[ship].every((cell) => opponentState[cell] === -1)
-      
-      if (opponentState.ships[ship].includes(e.id)) {
-        if (isSunk) {
-          return [ship, 'destroyed']
-        }
-        return [ship, 'hit']
-      }
-      
-    }
-  }
-}
-
-function renderShot(cell, type) {
-  if (type === 'hit') {
-    cell.classList.remove('placed')
-    cell.style.background = 'red'
-  } else if (type === 'miss') {
-    cell.style.background = 'white'
-  }
-}
-
-function sinkShip() {
-  
-}
-
-// todo: simplify
 // todo: replace console logs with renders
 // todo: separate concerns
 // fire on target
 // check if hit or miss
 // check for destruction
 function fire(e) {
-
   // computer turn
   if (activeBoard === 'player-board') {
     console.log('computer fires!')
@@ -631,7 +651,6 @@ function fire(e) {
       console.log('MISS!')
       renderShot(e, 'miss')
     }
-
 
   // player turn
   } else {
@@ -661,28 +680,13 @@ function fire(e) {
       renderShot(e, 'miss')
     }
   }
-  if (getGameState()) init()
-  setTurn()
+  if (getGameState()) {
+    init()
+  } else {
+    setTurn()
+  }
   return true
 }
-
-// toggle current turn
-function setTurn() {
-  activeBoard = (activeBoard === 'player-board') ? 'opponent-board' : 'player-board'
-  if (activeBoard === 'player-board') {
-    smallBoardEl.appendChild(opponentBoardEl)
-    largeBoardEl.appendChild(playerBoardEl)
-    if (enableComputer) {
-      const targetCell = playerBoardEl.querySelector(`#${computerChoice()}`)
-      if (!initialize) fire(targetCell)
-    }
-  } else {
-    smallBoardEl.appendChild(playerBoardEl)
-    largeBoardEl.appendChild(opponentBoardEl)
-  }
-}
-
-
 
 function computerChoice() {
   let valid = false

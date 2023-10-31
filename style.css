@@ -183,6 +183,9 @@ main {
 .selected {
   background-color: var(--lightgreen);
 }
+.sunk {
+  border-color: red;
+}
 .row-col-highlight {
   background-color: var(--darkergreen);
 }
