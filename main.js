@@ -1,12 +1,12 @@
 // todo: Functionality
-  // todo: add player ship select/placement
+  // add player ship select/placement
   // todo: detect overlapping ship placement
-  // todo: computer plays automatically
-  // todo: add end game function to finanlize/call init
+  // computer plays automatically
+  // add end game function to finanlize/call init
   // todo: simplify all functions with if(player)else(opponent)
 
 // todo: DOM
-  // todo: add player ship selection/placement actions
+  // add player ship selection/placement actions
   // switch main board based on active board
   // todo: on player/computer action
     // white = miss, red = hit
@@ -17,17 +17,17 @@
       // todo: destruction message
   // todo: display turn message
   // todo: display end game message
+  // todo: add player stats after ship selection setStats
 
 // todo: Styling
   // todo: add board switch animation
   // todo: fade in/out messages (player select, turn, sink, win)
 
 // todo: Bugs
-  // todo: dragging selects/highlights container
-  // todo: clicking board name highlights container
+  // todo: dragging bubbles
+  // todo: clicking board name bubbles
   // todo: computer goes first after reinit
-  // todo: computer cell selection type error line 561
-  
+
 //*----- constants -----*//
 
 // list all player cells and thier state
@@ -60,9 +60,20 @@ let activeBoard
 let winner
 let initialize
 
-// debug
+let selectedShip
+let initialShipCell
+let shipDirCell
+
+let shots
+let hits
+let misses
+let sunk
+
+//! debug
 let showOpponentPieces = true
 let enableComputer = true
+//!
+
 
 //*----- cached elements  -----*//
 
@@ -78,6 +89,8 @@ const playerShips = document.querySelectorAll('#player-ships-wrapper > div')
 
 function applyListeners() {
   largeBoardEl.addEventListener('click', handleBoardEvent)
+  largeBoardEl.addEventListener('mousedown', handleBoardEvent)
+  largeBoardEl.addEventListener('mouseup', handleBoardEvent)
   largeBoardEl.addEventListener('mouseover', handleBoardEvent)
   largeBoardEl.addEventListener('mouseleave', handleBoardEvent)
 }
@@ -90,17 +103,23 @@ function removeListeners() {
   largeBoardEl.removeEventListener('click', handleBoardEvent)
   largeBoardEl.removeEventListener('mouseover', handleBoardEvent)
   largeBoardEl.removeEventListener('mouseleave', handleBoardEvent)
-
+}
+function removeShipListeners() {
   playerShipsEl.removeEventListener('click', selectShip)
   playerShipsEl.removeEventListener('mouseover', handleShipEvent)
   playerShipsEl.removeEventListener('mouseleave', handleShipEvent)
 }
 
-let selectedShip
-let initialShipCell
-let shipDirCell
-
-
+function addInitListeners() {
+  largeBoardEl.addEventListener('click', selectShip)
+  largeBoardEl.addEventListener('mousedown', selectShip)
+  largeBoardEl.addEventListener('mouseup', selectShip)
+}
+function removeInitListeners() {
+  largeBoardEl.removeEventListener('click', selectShip)
+  largeBoardEl.removeEventListener('mousedown', selectShip)
+  largeBoardEl.removeEventListener('mouseup', selectShip)
+}
 //*----- classes -----*//
 
 // create new cells with the passed id, class, and inner text
@@ -118,22 +137,31 @@ class CreateCell {
 init()
 
 function init() {
-  
   activeBoard = 'player-board'
   winner = false;
   initialize = true;
   playerState = {...playerStateTemplate}
   opponentState = {...opponentStateTemplate}
-  
-  
-  clearBoards()  
-  // render player
+  shots = 0
+  hits = 0
+  misses = 0
+  sunk = 0
+  clearBoards()
   renderBoard(playerBoardEl)
   renderPlayerShips()
-  // render opponent
   renderBoard(opponentBoardEl)
   
   applyShipListeners()
+
+
+  //! debug
+  // setShip('carrier', 'b5', 'w')
+  // setShip('battleship', 'f8', 'n')
+  // setShip('cruiser', 'g4', 's')
+  // setShip('sub', 'i9', 'w')
+  // setShip('destroyer', 'f6', 'n')
+  //!
+
   beginTurn()
 }
 
@@ -149,11 +177,14 @@ function beginTurn() {
   if (shipsLen !== 5) {
     return
   } else {
+    clearBoards('ships')
+    setStats()
+    removeShipListeners()
+    removeInitListeners()
     applyListeners()
     setTurn()
     setComputerBoard()
-  }
-  
+  }  
 }
 
 //*----- handlers -----*//
@@ -180,7 +211,8 @@ function handleShipEvent(e) {
       el.classList.add('over')
     }
     if (e.type === 'click') {
-      console.log(e.target.id)
+      console.log(e.target)
+      e.target.classList.add('selected')
     }
   }
 
@@ -202,8 +234,8 @@ function handleShipEvent(e) {
 function selectShip(e) {
   if (e.target.id.includes('player')) {
     removeListeners()
+    addInitListeners()
     selectedShip = e.target.id.split('-')[1]
-    largeBoardEl.addEventListener('click', selectShip)
 
   } else if (!initialShipCell) {
     initialShipCell = e.target.id
@@ -238,15 +270,27 @@ function selectShip(e) {
       console.log('invalid placement. try again')
     }
 
-
     largeBoardEl.removeEventListener('click', selectShip)
-    applyShipListeners()
     selectedShip = ''
     initialShipCell = ''
     shipDirCell = ''
     beginTurn()
   }
 
+}
+
+
+
+function setStats() {
+  var children = playerShipsEl.querySelectorAll('div')
+  const text = [`Player Stats`, 
+                `Shots <span>${shots}</span>`, 
+                `Hits <span>${hits}</span>`, 
+                `Misses <span>${misses}</span>`, 
+                `Ships Sunk <span>${sunk}</span>`]
+  children.forEach((child, index) => {
+    child.innerHTML = text[index]
+  })
 }
 
 function renderPlayerShips() {
@@ -467,14 +511,23 @@ function getGameState() {
 
   if (gameState === 5) {
     init()
-    return
+    return true
   }
 
   return false
 }
 
+// todo: simplify
 function clearBoards(element) {
-  if (element) {
+  if (element === 'ships') {
+    playerShips.forEach((cell) => {
+      var child = cell.lastElementChild
+      while (child) {
+        cell.removeChild(child);
+        child = cell.lastElementChild
+      }
+    })
+  } else if (element) {
     var child = element.lastElementChild
       while (child) {
         element.removeChild(child);
@@ -566,6 +619,7 @@ function fire(e) {
       console.log('MISS!')
       renderShot(e, 'miss')
     }
+
     if (getGameState()) console.log('Computer Wins!')
 
   // player turn
@@ -593,7 +647,6 @@ function fire(e) {
       console.log('MISS!')
       renderShot(e, 'miss')
     }
-
     if (getGameState()) console.log('player Wins!')
   }
   setTurn()
