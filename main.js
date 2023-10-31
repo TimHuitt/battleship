@@ -1,16 +1,9 @@
 // todo: Functionality
-  // add player ship select/placement
   // todo: detect overlapping ship placement
-  // computer plays automatically
-  // add end game function to finanlize/call init
   // todo: simplify all functions with if(player)else(opponent)
-  // on reset, remove ship wrapper text, switch to player turn
 
 // todo: DOM
-  // add player ship selection/placement actions
-  // switch main board based on active board
   // todo: on player/computer action
-    // white = miss, red = hit
       // todo: display hit/miss message
     // todo: if ship destroyed, red border
       // todo: add red bg to computer/player ships preview
@@ -27,11 +20,11 @@
 // todo: Bugs
   // todo: dragging bubbles
   // todo: clicking board name bubbles
-  // todo: computer goes first after reinit
 
 //*----- constants -----*//
 
-// list all player cells and thier state
+// save all cells and thier state
+// save ship locations
 // 1 = occupied
 // 0 = empty
 // -1 = hit
@@ -45,7 +38,7 @@ const opponentStateTemplate = {
   ships: {}
 }
 
-// list of ship types and their cell length
+// list ship types and their cell length
 // cell length determines all ship geometry
 const ships = {
   destroyer: 2,
@@ -71,7 +64,7 @@ let sunk
 
 //! debug
 let showOpponentPieces = true
-let enableComputer = true
+let enableComputer = false
 //!
 
 
@@ -155,9 +148,7 @@ function init() {
   renderBoard(playerBoardEl)
   renderPlayerShips()
   renderBoard(opponentBoardEl)
-  
   applyShipListeners()
-
 
   //! debug
   // setShip('carrier', 'b5', 'w')
@@ -620,6 +611,26 @@ function clearBoards(element) {
   }
 }
 
+function toast(type, ship) {
+  const otherPlayer = activeBoard.split('-')[0]
+  const thisPlayer = (otherPlayer === 'player') ? 'computer' : 'player'
+  
+
+  if (type === 'fire') {
+    console.log(`${thisPlayer} fires!`)
+  } else if (type === 'hit') {
+    console.log('HIT!')
+  } else if (type === 'miss') {
+    console.log('MISS!')
+  } else if (type === 'destroy') {
+    console.log(`${otherPlayer}: you sunk my ${ship}`)
+  } else if (type === 'win') {
+    console.log(`${thisPlayer} WINS!`)
+  } else {
+
+  }
+}
+
 // todo: simplify
 // todo: replace console logs with renders
 // todo: separate concerns
@@ -629,54 +640,54 @@ function clearBoards(element) {
 function fire(e) {
   // computer turn
   if (activeBoard === 'player-board') {
-    console.log('computer fires!')
+    toast('fire')
     if (playerState[e.id] === 1) {
       playerState[e.id] = -1
       renderShot(e, 'hit')
 
       const getShip = getShipState(e)
       if (getShip[1] === 'destroyed') {
-        console.log(`player: you sunk my ${getShip[0]}`)
+        toast('destroy', getShip[0])
       } else {
-        console.log('HIT!')
+        toast('hit')
       }
-      if (getGameState()) console.log('Computer Wins!')
+      if (getGameState()) toast('win')
 
     } else if (playerState[e.id] === -1 || 
       playerState[e.id] === 2) {
-      console.log('Try Again...') 
+        toast()
       return false
     } else {
       playerState[e.id] = 2
-      console.log('MISS!')
+      toast('miss')
       renderShot(e, 'miss')
     }
 
   // player turn
   } else {
-    console.log('player fires!')
+    toast('fire')
 
     // if cell is occupied
     if (opponentState[e.id] === 1) {
       opponentState[e.id] = -1
-      console.log('HIT!')
+      toast('hit')
       renderShot(e, 'hit')
 
       const getShip = getShipState(e)
       if (getShip[1] === 'destroyed') {
-        console.log(`computer: you sunk my ${getShip[0]}`)
+        toast('destroy', getShip[0])
       }
 
-      if (getGameState()) console.log('player Wins!')
+      if (getGameState()) toast('win')
 
     } else if (opponentState[e.id] === -1 || 
               opponentState[e.id] === 2) {
-      console.log('Try Again...') 
+      toast()
       return false
 
     } else {
       opponentState[e.id] = 2
-      console.log('MISS!')
+      toast('miss')
       renderShot(e, 'miss')
     }
   }

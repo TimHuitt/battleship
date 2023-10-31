@@ -183,7 +183,7 @@ main {
 .selected {
   background-color: var(--lightgreen);
 }
-.sunk {
+.hit {
   border-color: red;
 }
 .row-col-highlight {
