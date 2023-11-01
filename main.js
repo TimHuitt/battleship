@@ -11,16 +11,18 @@
       // todo: destruction message
   // todo: display turn message
   // todo: display end game message
-  // todo: add player stats after ship selection setStats
+  // todo: add player stats after ship selection renderStats
 
 // todo: Styling
   // todo: add board switch animation
   // todo: fade in/out messages (player select, turn, sink, win)
 
 // todo: Bugs
-  // todo: board listeners active after new game start (before ship placement completes)
+  // board listeners active after new game start (before ship placement completes)
   // todo: ship selection lost on try again
   // todo: ship selection lost on click (no dir passed)
+  // todo: ship placement issue if release out of bounds
+  // todo: click to place not working
 
 //*----- constants -----*//
 
@@ -49,6 +51,13 @@ const ships = {
   carrier: 5,
 }
 
+const scores = {
+  shots: 0,
+  hits: 0,
+  misses: 0,
+  sunk: 0,
+}
+
 //*----- state variables -----*//
 
 let activeBoard
@@ -58,16 +67,11 @@ let selectedShip
 let initialShipCell
 let shipDirCell
 
-let shots
-let hits
-let misses
-let sunk
-
 let playerName = 'Player'
 let opponentName = 'Computer'
 
-
 let introDelay
+let toastDelay
 let oneDelay
 let twoDelay
 let threeDelay
@@ -148,7 +152,8 @@ class Toast {
     this.el.classList.add('toast')
   }
 
-  show(msg, delay = 0, timeout = 3000) {
+  show(msg, delay = 0, timeout = toastDelay) {
+    if (!displayAlerts) return
     setTimeout(() => {
       this.el.innerHTML = msg
       this.el.classList.add('show')
@@ -177,18 +182,19 @@ function init() {
   opponentState = {...opponentStateTemplate}
   opponentState.ships = {...opponentStateTemplate.ships}
 
-  shots = 0
-  hits = 0
-  misses = 0
-  sunk = 0
+  scores.shots = 0
+  scores.hits = 0
+  scores.misses = 0
+  scores.sunk = 0
 
   introDelay = 3010
+  toastDelay = 3000
   oneDelay = 1000
   twoDelay = 2000
   threeDelay = 3000
   fourDelay = 4000
   
-  setStats(1)
+  renderStats(1)
   clearBoards()
   renderBoard(playerBoardEl)
   renderPlayerShips()
@@ -201,6 +207,14 @@ function init() {
   setShip('cruiser', 'g4', 's')
   setShip('sub', 'i9', 'w')
   setShip('destroyer', 'f6', 'n')
+
+  // introDelay = 0
+  // toastDelay = 1000
+  // oneDelay = 0
+  // twoDelay = 0
+  // threeDelay = 0
+  // fourDelay = 0
+
   //!
 
   new Toast().show(`Welcome to Battleship!`, 1000, 2000)
@@ -229,7 +243,7 @@ function beginTurn() {
     return
   } else {
     clearBoards('ships')
-    setStats()
+    renderStats()
     removeShipListeners()
     removeInitListeners()
     applyListeners()
@@ -481,9 +495,10 @@ function setShip(ship, cell, direction) {
 
 
 
+
 // set player stats in ship container
 // 1 = reset
-function setStats(reset) {
+function renderStats(reset) {
   var children = playerShipsEl.querySelectorAll('div')
   if (reset) {
     children.forEach((child, index) => {
@@ -491,14 +506,18 @@ function setStats(reset) {
     })
   } else {
     const text = [`Player Stats`, 
-                  `<div class="stats">Shots</div> <div>${shots}</div>`, 
-                  `<div class="stats">Hits</div> <div>${hits}</div>`, 
-                  `<div class="stats">Misses</div> <div>${misses}</div>`, 
-                  `<div class="stats">Ships Sunk</div> <div>${sunk}</div>`
+                  `<div class="stats">Shots</div> <div id="shots">${scores.shots}</div>`, 
+                  `<div class="stats">Hits</div> <div id="hits">${scores.hits}</div>`, 
+                  `<div class="stats">Misses</div> <div id="misses">${scores.misses}</div>`, 
+                  `<div class="stats">Ships Sunk</div> <div id="sunk">${scores.sunk}</div>`
                 ]
     children.forEach((child, index) => {
       child.innerHTML = text[index]
     })
+    const shots = document.querySelector('#shots')
+    const hits = document.querySelector('#hits')
+    const misses = document.querySelector('#misses')
+    const sunk = document.querySelector('#sunk')
   }
 }
 
@@ -676,63 +695,90 @@ function clearBoards(element) {
 }
 
 
+// type = hit/miss/shipname
+function setScore(type) {
+  if (activeBoard !== 'player-board') {
+    scores.shots++
+    switch (type) {
+      case 'hit':
+        scores.hits++
+        break
+      case 'miss':
+        scores.misses++
+        break
+      default:
+        scores.sunk++
+        break
+    }
+  }
+  updateScores()
+}
+
+function updateScores() {
+  shots.innerText = scores.shots
+  hits.innerText = scores.hits
+  misses.innerText = scores.misses
+  sunk.innerText = scores.sunk
+}
 
 function setToast(type, ship) {
   const thisPlayer = (activeBoard.split('-')[0] === 'player') ? opponentName : playerName
   const otherPlayer = (thisPlayer === 'player') ? playerName : opponentName
-  console.log(thisPlayer, otherPlayer)
-  console.log(type, ship)
   if (type === 'fire') {
     new Toast().show(`${thisPlayer} fires!`)
-    
   } else if (type === 'hit') {
     new Toast().show('HIT!', oneDelay, twoDelay)
-
+    setScore('hit')
   } else if (type === 'miss') {
     new Toast().show('MISS!', oneDelay, twoDelay)
-
+    setScore('miss')
   } else if (type === 'destroy') {
+    // Both "sank" and "sunk" are valid past tense inflections of the verb "sink."
     new Toast().show(`${otherPlayer}: you sunk my ${ship}`, twoDelay, threeDelay)
-
+    setScore(ship)
   } else if (type === 'win') {
     new Toast().show(`${thisPlayer} WINS!`, threeDelay)
   } else {
-
+    new Toast().show(`Invalid Selection:<br>Try again...`, oneDelay, twoDelay)
   }
 }
 
-function disable(toggle) {
-  if (toggle) {
-    body.classList.add('disable')
-  } else {
-    body.classList.remove('disable')
-  }
-}
 // todo: simplify
 // todo: separate concerns
 // fire on target
 // check if hit or miss
 // check for destruction
 function fire(e) {
+  //disable interaction
   disable(1)
+
   // computer turn
   if (activeBoard === 'player-board') {
     setToast('fire')
+
+    // if selection is a hit
     if (playerState[e.id] === 1) {
       playerState[e.id] = -1
-      renderShot(e, 'hit')
+      setTimeout(() => {
+        renderShot(e, 'hit')
+      })
 
+      // if hit destroys a ship
       const getShip = getShipState(e)
       if (getShip[1] === 'destroyed') {
         setToast('destroy', getShip[0])
       } else {
         setToast('hit')
       }
+
+      // if destruction wins game
       if (getGameState()) setToast('win')
 
+    // if already selected
     } else if (playerState[e.id] === -1 || 
       playerState[e.id] === 2) {
         setToast('Invalid selection... Try again')
+        disable(0)
       return false
     } else {
       playerState[e.id] = 2
@@ -760,8 +806,8 @@ function fire(e) {
     } else if (opponentState[e.id] === -1 || 
               opponentState[e.id] === 2) {
       setToast('Invalid selection... Try again')
+      disable(0)
       return false
-
     } else {
       opponentState[e.id] = 2
       setToast('miss')
@@ -790,4 +836,10 @@ function computerChoice() {
   return output
 }
 
-
+function disable(toggle) {
+  if (toggle) {
+    body.classList.add('disable')
+  } else {
+    body.classList.remove('disable')
+  }
+}
