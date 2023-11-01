@@ -74,11 +74,12 @@ let threeDelay
 let fourDelay
 
 //! debug
-let autoSelectPlayerPieces = false
+let autoSelectPlayerPieces = true
 let showOpponentPieces = true
 let enableComputerPlayer = true
 let displayAlerts = true
 let stopTimers = true
+let showGrid = true
 //!
 
 
@@ -139,6 +140,7 @@ class CreateCell {
   constructor(id, cls, text='') {
     this.el = document.createElement('div')
     this.el.setAttribute('id', id)
+    if (showGrid) this.el.innerText = id
     this.el.classList.add(cls)
     this.el.classList.add('center')
   }
@@ -615,18 +617,19 @@ function setComputerBoard() {
   let posArr = []
   for (let ship in ships) {
     let valid = false
-    let overlap = false
+    let overlap = true
 
     while (!valid || overlap) {
       let randomRow = getRandomData()[0]
       let randomCol = getRandomData()[1]
       let randomDir = getRandomData()[2]
       let rowChar = String.fromCharCode(randomRow)
-
       valid = isValid(ship, randomDir, randomRow, randomCol)
       overlap = isOverlap(ship, rowChar + randomCol, randomDir)
+
       
       if (valid && !overlap) {
+        console.log(ship, rowChar + randomCol, randomDir)
         setShip(ship, rowChar + randomCol, randomDir)
       }
     }
@@ -844,7 +847,7 @@ function isValid(ship, dir, row, col) {
 function isOverlap(ship, cell, direction) {
   let currentRow = getGrid(cell)[0]
   let currentCol = getGrid(cell)[1]
-  let currentChar = getGrid(cell)[2]
+  let currentChar = getGrid(currentRow)[2]
   let currentPos = [cell]
 
   for (let i = 0; i < ships[ship] - 1; i++) {
@@ -861,7 +864,8 @@ function isOverlap(ship, cell, direction) {
   }
   
   const noOverlap = currentPos.every((currentCell) => {
-    return playerState[currentCell] === 0
+    return playerState[currentCell] === 0 && 
+          playerState[currentCell] !== undefined
   })
 
   return (noOverlap) ? false : true
