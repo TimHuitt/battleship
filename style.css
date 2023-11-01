@@ -1,15 +1,24 @@
 @import url('https://fonts.googleapis.com/css2?family=Chakra+Petch&display=swap');
 :root {
-  --lightgreen: rgb(4, 191, 4);
-  --darkgreen: rgb(5, 64, 5);
+  --lightest: rgb(134, 249, 186);
+  --light: rgb(5, 177, 5);
+  --green: rgb(12, 131, 12);
+  --darkgreen: rgb(5, 65, 5);
+  --darkalpha: rgba(3, 40, 3, 0.4);
   --darkergreen: rgb(3, 37, 3);
 
-  --blue: rgb(8, 42, 20);
+  --blue: rgb(7, 52, 22);
+  --red: rgb(98, 3, 3);
+  --white: rgb(16, 28, 37);
 
-  --light: rgb(55, 207, 124);
+  --hit: rgb(78, 5, 5);
+  --hitglow: rgb(176, 18, 18);
+  --miss: rgb(94, 94, 123);
+  --missglow: blue;
 }
 * {
   box-sizing: border-box;
+  user-select: none;
 }
 body {
   display: flex;
@@ -18,13 +27,13 @@ body {
   width: 100%;
   height: 100vh;
   padding: 2%;
-  color: var(--light);
+  color: var(--green);
   font-family: 'Chakra Petch', sans-serif;
   font-size: 2vmin;
   justify-content: center;
   align-items: center;
   border: .25vmin solid var(--darkgreen);
-  box-shadow: inset 0 0 10vmin var(--darkgreen);
+  box-shadow: inset 0 0 5vmin var(--darkgreen);
 }
 main {
   display: flex;
@@ -144,6 +153,7 @@ main {
   height: 95%;
   border: 3px solid var(--light);
   border-radius: 1vmin;
+  box-shadow: inset 0 0 2vmin var(--darkgreen);
   grid-template-columns: repeat(10, 1fr);
   grid-template-rows: repeat(10, 1fr);
   overflow: hidden;
@@ -155,7 +165,7 @@ main {
   right: 2%;
   font-size: 3vmin;
   text-align: center;
-  color: var(--lightgreen);
+  color: var(--light);
 }
 .cell {
   border: 1px solid var(--darkgreen);
@@ -163,28 +173,36 @@ main {
   min-width: 2.5vmin;
 }
 .cell:hover {
-  background-color: #444;
   border: 5px solid var(--light);
+  box-shadow: 0 0 .5vmin var(--light);
 }
 .ship {
-  border: 1px solid var(--lightgreen);
+  border: 1px solid var(--light);
   min-height: 100%;
   width: 5vmin;
   background-color: var(--blue);
+  box-shadow: 0 0 0 1px #000;
   pointer-events: none;
 }
 .placed {
   background-color: var(--blue) !important;
-  border-color: var(--lightgreen)
+  border-color: var(--light);
+
+  box-shadow: 0 0 0 1px #000;
 }
 .over {
   background-color: var(--darkgreen);
 }
 .selected {
-  background-color: var(--lightgreen);
+  background-color: var(--light);
 }
 .hit {
-  border-color: red;
+  background-color: var(--hit) !important;
+  border-color: var(--hitglow) !important;
+}
+.miss {
+  background-color: var(--miss) !important;
+  border-color: var(--missglow) !important;
 }
 .row-col-highlight {
   background-color: var(--darkergreen);
@@ -239,7 +257,6 @@ main {
   justify-content: center;
   align-items: center;
   min-width: 75%;
-  height: 100%;
 }
 #large-board-wrapper {
   display: flex;
@@ -253,13 +270,14 @@ main {
   position: relative;
   width: 95%;
   height: 95%;
-  border: 5px solid var(--light);
+  border: 3px solid var(--light);
   border-radius: 2vmin;
+  box-shadow: inset 0 0 3vmin var(--darkgreen);
+
   grid-template-columns: repeat(10, 1fr);
   grid-template-rows: repeat(10, 1fr);
   overflow: hidden;
 }
-
 #player-board::after {
   content: "Player";
   position: absolute;
@@ -267,16 +285,73 @@ main {
   right: 2%;
   font-size: 3vmin;
   text-align: center;
-  color: var(--lightgreen);
+  color: var(--light);
   pointer-events: none;
 }
+
 #player-stats-wrapper {
   display: none;
+  text-align: right;
 }
+.stats {
+  width: 70%;
+}
+.sunk {
+  border: 2px solid var(--red);
+  background-color: var(--red);
+}
+
+
+#toast-container {
+  position: absolute;
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  flex-direction: column;
+  width: 100%;
+  height: 100vh;
+  margin-top: 15%;
+  pointer-events: none;
+}
+.toast {
+  position: relative;
+  display: none;
+  width: 30vmin;
+  margin: 1vmin;
+  padding: 1vmin;
+  color: var(--light);
+  font-size: 2vmin;
+  font-weight: bold;
+  letter-spacing: 1px;
+  border: 3px solid var(--light);
+  border-radius: 1vmin;
+  /* box-shadow: inset 0 0 1vmin var(--darkgreen); */
+  background: var(--darkalpha);
+  backdrop-filter: blur(3px);
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  pointer-events: none;
+}
+.toast h3 {
+  padding: 0;
+  margin: .5vmin;
+}
+.toast p {
+  padding: 0;
+  margin: .25vmin;
+}
+
 .center {
   display: flex;
   justify-content: center;
   align-items: center;
+}
+.show {
+  display: flex;
+}
+.hide {
+  display: none;
 }
 .disable {
   pointer-events: none;
