@@ -6,6 +6,9 @@
   --darkergreen: rgb(3, 37, 3);
 
   --blue: rgb(10, 60, 27);
+  --red: rgb(98, 3, 3);
+  --redglow: red;
+  --white: rgb(180, 204, 221);
 
   --light: rgb(55, 207, 124);
 }
@@ -166,8 +169,8 @@ main {
   min-width: 2.5vmin;
 }
 .cell:hover {
-  background-color: #444;
   border: 5px solid var(--light);
+  box-shadow: 0 0 2vmin var(--lightgreen);
 }
 .ship {
   border: 1px solid var(--lightgreen);
@@ -283,6 +286,10 @@ main {
 }
 .stats {
   width: 70%;
+}
+.sunk {
+  border: 2px solid var(--red);
+  background-color: var(--red);
 }
 
 

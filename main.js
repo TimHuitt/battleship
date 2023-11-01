@@ -4,25 +4,22 @@
 
 // todo: DOM
   // todo: on player/computer action
-      // todo: display hit/miss message
     // todo: if ship destroyed, red border
       // todo: add red bg to computer/player ships preview
       // todo: reduce computer ships remaining count
-      // todo: destruction message
   // todo: display turn message
-  // todo: display end game message
-  // todo: add player stats after ship selection renderStats
+  // todo: fix end game message timing
 
 // todo: Styling
   // todo: add board switch animation
-  // todo: fade in/out messages (player select, turn, sink, win)
+  // todo: fade in/out messages
 
 // todo: Bugs
-  // board listeners active after new game start (before ship placement completes)
   // todo: ship selection lost on try again
   // todo: ship selection lost on click (no dir passed)
   // todo: ship placement issue if release out of bounds
-  // todo: click to place not working
+  // todo: dragging during firing stage breaks board
+
 
 //*----- constants -----*//
 
@@ -51,6 +48,7 @@ const ships = {
   carrier: 5,
 }
 
+// player stats
 const scores = {
   shots: 0,
   hits: 0,
@@ -60,15 +58,15 @@ const scores = {
 
 //*----- state variables -----*//
 
-let activeBoard
-let initialize
+let activeBoard // 'player-board'/'opponent-board'
+let initialize // skips computer turn on start
 
-let selectedShip
-let initialShipCell
-let shipDirCell
+let selectedShip // ship placement str
+let initialShipCell // ship placement str
+let shipDirCell // ship placement str
 
-let playerName = 'Player'
-let opponentName = 'Computer'
+let playerName
+let opponentName
 
 let introDelay
 let toastDelay
@@ -174,6 +172,9 @@ class Toast {
 init()
 
 function init() {
+  playerName = 'Player'
+  opponentName = 'Computer'
+
   initialize = true;
   if (!activeBoard) activeBoard = 'player-board'
 
@@ -187,7 +188,7 @@ function init() {
   scores.misses = 0
   scores.sunk = 0
 
-  introDelay = 3010
+  introDelay = 2010
   toastDelay = 3000
   oneDelay = 1000
   twoDelay = 2000
@@ -217,7 +218,7 @@ function init() {
 
   //!
 
-  new Toast().show(`Welcome to Battleship!`, 1000, 2000)
+  new Toast().show(`Welcome to Battleship!`, 500, 3000)
   setTimeout(() => {
     new Toast().show(`
     <h3> Ship Setup </h3>
@@ -422,8 +423,17 @@ function renderShot(cell, type) {
   }
 }
 
-function sinkShip() {
-  
+function setShipStatus(ship, reset) {
+  if (reset) {
+    const ships = document.querySelectorAll('#opponent-ships > div > div')
+    for (let ship in ships) {
+      ship.classList.remove('sunk')
+    }
+  } else {
+    const shipEl = document.querySelector(`#opponent-${ship}`)
+    shipEl.classList.add('sunk')
+    console.log(shipEl)
+  }
 }
 
 
@@ -721,23 +731,27 @@ function updateScores() {
   sunk.innerText = scores.sunk
 }
 
-function setToast(type, ship) {
+function setToast(type, ship, e) {
   const thisPlayer = (activeBoard.split('-')[0] === 'player') ? opponentName : playerName
   const otherPlayer = (thisPlayer === 'player') ? playerName : opponentName
+
   if (type === 'fire') {
     new Toast().show(`${thisPlayer} fires!`)
+
   } else if (type === 'hit') {
     new Toast().show('HIT!', oneDelay, twoDelay)
-    setScore('hit')
+
   } else if (type === 'miss') {
     new Toast().show('MISS!', oneDelay, twoDelay)
     setScore('miss')
+
   } else if (type === 'destroy') {
-    // Both "sank" and "sunk" are valid past tense inflections of the verb "sink."
-    new Toast().show(`${otherPlayer}: you sunk my ${ship}`, twoDelay, threeDelay)
+    new Toast().show(`${otherPlayer}:<br> you sunk my ${ship}`, twoDelay, threeDelay)
     setScore(ship)
+
   } else if (type === 'win') {
     new Toast().show(`${thisPlayer} WINS!`, threeDelay)
+
   } else {
     new Toast().show(`Invalid Selection:<br>Try again...`, oneDelay, twoDelay)
   }
@@ -759,16 +773,16 @@ function fire(e) {
     // if selection is a hit
     if (playerState[e.id] === 1) {
       playerState[e.id] = -1
+      setToast('hit')
       setTimeout(() => {
         renderShot(e, 'hit')
-      })
+        setScore('hit')
+      }, oneDelay)
 
       // if hit destroys a ship
       const getShip = getShipState(e)
       if (getShip[1] === 'destroyed') {
         setToast('destroy', getShip[0])
-      } else {
-        setToast('hit')
       }
 
       // if destruction wins game
@@ -783,7 +797,10 @@ function fire(e) {
     } else {
       playerState[e.id] = 2
       setToast('miss')
-      renderShot(e, 'miss')
+      setTimeout(() => {
+        renderShot(e, 'miss')
+        setScore('hit')
+      }, oneDelay)
     }
 
   // player turn
@@ -794,11 +811,15 @@ function fire(e) {
     if (opponentState[e.id] === 1) {
       opponentState[e.id] = -1
       setToast('hit')
-      renderShot(e, 'hit')
+      setTimeout(() => {
+        renderShot(e, 'hit')
+        setScore('hit')
+      }, oneDelay)
 
       const getShip = getShipState(e)
       if (getShip[1] === 'destroyed') {
         setToast('destroy', getShip[0])
+        setShipStatus(getShip[0])
       }
 
       if (getGameState()) setToast('win')
@@ -811,7 +832,10 @@ function fire(e) {
     } else {
       opponentState[e.id] = 2
       setToast('miss')
-      renderShot(e, 'miss')
+      setTimeout(() => {
+        renderShot(e, 'miss')
+        setScore('hit')
+      }, oneDelay)
     }
   }
   if (getGameState()) {
