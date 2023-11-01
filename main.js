@@ -3,12 +3,9 @@
   // todo: simplify all functions with if(player)else(opponent)
 
 // todo: DOM
-  // todo: on player/computer action
-    // todo: if ship destroyed, red border
-      // todo: add red bg to computer/player ships preview
-      // todo: reduce computer ships remaining count
   // todo: display turn message
   // todo: fix end game message timing
+  // todo: reset computer stats on game restart
 
 // todo: Styling
   // todo: add board switch animation
@@ -55,6 +52,7 @@ const scores = {
   misses: 0,
   sunk: 0,
 }
+
 
 //*----- state variables -----*//
 
@@ -110,26 +108,27 @@ function removeListeners() {
 }
 
 function applyShipListeners() {
-  playerShipsEl.addEventListener('click', selectShip)
+  playerShipsEl.addEventListener('click', renderShipSelection)
   playerShipsEl.addEventListener('mouseover', handleShipEvent)
   playerShipsEl.addEventListener('mouseleave', handleShipEvent)
 }
 function removeShipListeners() {
-  playerShipsEl.removeEventListener('click', selectShip)
+  playerShipsEl.removeEventListener('click', renderShipSelection)
   playerShipsEl.removeEventListener('mouseover', handleShipEvent)
   playerShipsEl.removeEventListener('mouseleave', handleShipEvent)
 }
 
 function addInitListeners() {
-  largeBoardEl.addEventListener('click', selectShip)
-  largeBoardEl.addEventListener('mousedown', selectShip)
-  largeBoardEl.addEventListener('mouseup', selectShip)
+  largeBoardEl.addEventListener('click', renderShipSelection)
+  largeBoardEl.addEventListener('mousedown', renderShipSelection)
+  largeBoardEl.addEventListener('mouseup', renderShipSelection)
 }
 function removeInitListeners() {
-  largeBoardEl.removeEventListener('click', selectShip)
-  largeBoardEl.removeEventListener('mousedown', selectShip)
-  largeBoardEl.removeEventListener('mouseup', selectShip)
+  largeBoardEl.removeEventListener('click', renderShipSelection)
+  largeBoardEl.removeEventListener('mousedown', renderShipSelection)
+  largeBoardEl.removeEventListener('mouseup', renderShipSelection)
 }
+
 
 //*----- classes -----*//
 
@@ -167,6 +166,7 @@ class Toast {
   }
 }
 
+
 //*----- initialization -----*//
 
 init()
@@ -195,6 +195,7 @@ function init() {
   threeDelay = 3000
   fourDelay = 4000
   
+  
   renderStats(1)
   clearBoards()
   renderBoard(playerBoardEl)
@@ -203,11 +204,11 @@ function init() {
   applyShipListeners()
 
   //! debug
-  setShip('carrier', 'b5', 'w')
-  setShip('battleship', 'f8', 'n')
-  setShip('cruiser', 'g4', 's')
-  setShip('sub', 'i9', 'w')
-  setShip('destroyer', 'f6', 'n')
+  // setShip('carrier', 'b5', 'w')
+  // setShip('battleship', 'f8', 'n')
+  // setShip('cruiser', 'g4', 's')
+  // setShip('sub', 'i9', 'w')
+  // setShip('destroyer', 'f6', 'n')
 
   // introDelay = 0
   // toastDelay = 1000
@@ -236,7 +237,7 @@ function beginTurn() {
   
 
   let shipsLen = 0
-  for (ship in playerState.ships) {
+  for (const ship in playerState.ships) {
     shipsLen++
   }
 
@@ -252,6 +253,7 @@ function beginTurn() {
     setComputerBoard()
   }  
 }
+
 
 //*----- handlers -----*//
 
@@ -293,10 +295,10 @@ function handleShipEvent(e) {
   }
 }
 
+
 //*----- rendering -----*//
 
-
-function selectShip(e) {
+function renderShipSelection(e) {
   if (e.target.id.includes('player') && !e.target.id.includes('wrapper')) {
     removeListeners()
     addInitListeners()
@@ -334,7 +336,7 @@ function selectShip(e) {
       new Toast().show('invalid placement. try again')
     }
 
-    largeBoardEl.removeEventListener('click', selectShip)
+    largeBoardEl.removeEventListener('click', renderShipSelection)
     selectedShip = ''
     initialShipCell = ''
     shipDirCell = ''
@@ -423,23 +425,107 @@ function renderShot(cell, type) {
   }
 }
 
-const remainingEl = document.querySelector('#opponent-remaining')
-function setShipStatus(ship, reset) {
+
+// set player stats in ship container
+// 1 = reset
+function renderStats(reset) {
+  var children = playerShipsEl.querySelectorAll('div')
   if (reset) {
-    const ships = document.querySelectorAll('#opponent-ships > div > div')
-    for (let ship in ships) {
-      ship.classList.remove('sunk')
-    }
-    remainingEl.innerText = "Ships Remaining: 5"
+    children.forEach((child, index) => {
+      child.innerHTML = ''
+    })
   } else {
-    const shipEl = document.querySelector(`#opponent-${ship}`)
-    shipsLeft = remainingEl.innerText.split(': ')[1] - 1
-    remainingEl.innerText = `Ships Remaining: ${shipsLeft}`
-    shipEl.classList.add('sunk')
-    console.log(shipEl)
+    const text = [`Player Stats`, 
+                  `<div class="stats">Shots</div> <div id="shots">${scores.shots}</div>`, 
+                  `<div class="stats">Hits</div> <div id="hits">${scores.hits}</div>`, 
+                  `<div class="stats">Misses</div> <div id="misses">${scores.misses}</div>`, 
+                  `<div class="stats">Ships Sunk</div> <div id="sunk">${scores.sunk}</div>`
+                ]
+    children.forEach((child, index) => {
+      child.innerHTML = text[index]
+    })
+    const shots = document.querySelector('#shots')
+    const hits = document.querySelector('#hits')
+    const misses = document.querySelector('#misses')
+    const sunk = document.querySelector('#sunk')
   }
 }
 
+
+//*----- getters -----*//
+
+// todo: simplify
+// check if game has ended
+function getGameState() {
+  let gameState = 0
+  
+  if (activeBoard === 'opponent-board') {
+    for (let ship in opponentState.ships) {
+      const shipState = opponentState.ships[ship].every((cell) => opponentState[cell] === -1)
+      if (shipState) gameState++
+    }
+  } else {
+    for (let ship in playerState.ships) {
+      const shipState = playerState.ships[ship].every((cell) => playerState[cell] === -1)
+      if (shipState) gameState++
+    }
+  }
+
+  if (gameState === 5) {
+    return true
+  }
+
+  return false
+}
+
+// todo: simplify
+// returns struck ship and whether it is hit or destroyed
+function getShipState(e) {
+  if (activeBoard === 'player-board') {
+    for (let ship in playerState.ships) {
+      if (playerState.ships[ship].includes(e.id)) {
+        const isSunk = playerState.ships[ship].every((cell) => playerState[cell] === -1)
+
+        if (isSunk) {
+          return [ship, 'destroyed']
+        }
+        return [ship, 'hit']
+      }
+    }   
+  } else {
+    for (let ship in opponentState.ships) {
+      const isSunk = opponentState.ships[ship].every((cell) => opponentState[cell] === -1)
+      
+      if (opponentState.ships[ship].includes(e.id)) {
+        if (isSunk) {
+          return [ship, 'destroyed']
+        }
+        return [ship, 'hit']
+      }
+      
+    }
+  }
+}
+
+function getRandomData() {
+  let randomRow = Math.floor(Math.random() * (106-97) + 97)
+  let randomCol = Math.floor(Math.random() * (10 - 1) + 1)
+  let randomDir = ['n', 'e', 's', 'w'][Math.floor(Math.random() * 4)]
+  return [randomRow, randomCol, randomDir]
+}
+
+function getComputerChoice() {
+  let valid = false
+
+  while (!valid) {
+    let input = getRandomData()
+    let row = String.fromCharCode(input[0])
+    let col = input[1]
+    output = row + col
+    if (playerState[output] === 1 || playerState[output] === 0) valid = true
+  }
+  return output
+}
 
 
 //*----- setters -----*//
@@ -508,35 +594,6 @@ function setShip(ship, cell, direction) {
   return true
 }
 
-
-
-
-// set player stats in ship container
-// 1 = reset
-function renderStats(reset) {
-  var children = playerShipsEl.querySelectorAll('div')
-  if (reset) {
-    children.forEach((child, index) => {
-      child.innerHTML = ''
-    })
-  } else {
-    const text = [`Player Stats`, 
-                  `<div class="stats">Shots</div> <div id="shots">${scores.shots}</div>`, 
-                  `<div class="stats">Hits</div> <div id="hits">${scores.hits}</div>`, 
-                  `<div class="stats">Misses</div> <div id="misses">${scores.misses}</div>`, 
-                  `<div class="stats">Ships Sunk</div> <div id="sunk">${scores.sunk}</div>`
-                ]
-    children.forEach((child, index) => {
-      child.innerHTML = text[index]
-    })
-    const shots = document.querySelector('#shots')
-    const hits = document.querySelector('#hits')
-    const misses = document.querySelector('#misses')
-    const sunk = document.querySelector('#sunk')
-  }
-}
-
-
 // randomly search ship starting positions
 // set ship if position is valid
 function setComputerBoard() {
@@ -569,7 +626,7 @@ function setTurn() {
     largeBoardEl.appendChild(playerBoardEl)
     if (enableComputer) {
       setTimeout(() => {
-        const targetCell = playerBoardEl.querySelector(`#${computerChoice()}`)
+        const targetCell = playerBoardEl.querySelector(`#${getComputerChoice()}`)
         if (!initialize) fire(targetCell)
       }, oneDelay)
       setTimeout(() => {
@@ -585,130 +642,21 @@ function setTurn() {
 }
 
 
-//*----- getters -----*//
-
-// todo: simplify
-// check if game has ended
-function getGameState() {
-  let gameState = 0
-  
-  if (activeBoard === 'opponent-board') {
-    for (let ship in opponentState.ships) {
-      const shipState = opponentState.ships[ship].every((cell) => opponentState[cell] === -1)
-      if (shipState) gameState++
+function setShipStatus(ship, reset) {
+  const remainingEl = document.querySelector('#opponent-remaining')
+  if (reset) {
+    const ships = document.querySelectorAll('#opponent-ships > div > div')
+    for (let shipEl in ships) {
+      shipEl.classList.remove('sunk')
     }
+    remainingEl.innerText = "Ships Remaining: 5"
   } else {
-    for (let ship in playerState.ships) {
-      const shipState = playerState.ships[ship].every((cell) => playerState[cell] === -1)
-      if (shipState) gameState++
-    }
-  }
-
-  if (gameState === 5) {
-    return true
-  }
-
-  return false
-}
-
-// todo: simplify
-// returns struck ship and whether it is hit or destroyed
-function getShipState(e) {
-  if (activeBoard === 'player-board') {
-    for (let ship in playerState.ships) {
-      if (playerState.ships[ship].includes(e.id)) {
-        const isSunk = playerState.ships[ship].every((cell) => playerState[cell] === -1)
-
-        if (isSunk) {
-          return [ship, 'destroyed']
-        }
-        return [ship, 'hit']
-      }
-    }   
-  } else {
-    for (let ship in opponentState.ships) {
-      const isSunk = opponentState.ships[ship].every((cell) => opponentState[cell] === -1)
-      
-      if (opponentState.ships[ship].includes(e.id)) {
-        if (isSunk) {
-          return [ship, 'destroyed']
-        }
-        return [ship, 'hit']
-      }
-      
-    }
+    const shipEl = document.querySelector(`#opponent-${ship}`)
+    shipsLeft = remainingEl.innerText.split(': ')[1] - 1
+    remainingEl.innerText = `Ships Remaining: ${shipsLeft}`
+    shipEl.classList.add('sunk')
   }
 }
-
-
-//*----- tools -----*//
-
-// check if ship orientation is valid
-// ([ship name], [direction letter], [row char number], [column number])
-// (str, str, int, int)
-// ('battleship', 's', 97, 4)
-function isValid(ship, dir, row, col) {
-  if (!ship || !dir || !row || !col) return false
-
-  if (dir == 'n' && row - ships[ship] + 1 < 97) {
-    return false
-  } else if (dir == 'e' && col + ships[ship] - 1 > 10) {
-    return false
-  } else if (dir == 's' && row + ships[ship] - 1 > 106) {
-    return false
-  } else if (dir == 'w' && col - ships[ship] + 1 < 1) {
-    return false
-  }
-
-  return true
-}
-
-// todo: complete function
-// check current ship location for overlap
-// ([ship name], [row char number], [column number])
-// (str, int, int)
-// ('battleship', 97, 4)
-function isOverlap(posArr) {
-  // console.log(posArr)
-}
-
-
-function getRandomData() {
-  let randomRow = Math.floor(Math.random() * (106-97) + 97)
-  let randomCol = Math.floor(Math.random() * (10 - 1) + 1)
-  let randomDir = ['n', 'e', 's', 'w'][Math.floor(Math.random() * 4)]
-  return [randomRow, randomCol, randomDir]
-}
-
-// todo: simplify
-function clearBoards(element) {
-  if (element === 'ships') {
-    playerShips.forEach((cell) => {
-      var child = cell.lastElementChild
-      while (child) {
-        cell.removeChild(child);
-        child = cell.lastElementChild
-      }
-    })
-  } else if (element) {
-    var child = element.lastElementChild
-      while (child) {
-        element.removeChild(child);
-        child = element.lastElementChild
-      }
-  } else {
-    playerBoardEl.innerHTML = ''
-    opponentBoardEl.innerHTML = ''
-    playerShips.forEach((cell) => {
-      var child = cell.lastElementChild
-      while (child) {
-        cell.removeChild(child);
-        child = cell.lastElementChild
-      }
-    })
-  }
-}
-
 
 // type = hit/miss/shipname
 function setScore(type) {
@@ -729,13 +677,6 @@ function setScore(type) {
   updateScores()
 }
 
-function updateScores() {
-  shots.innerText = scores.shots
-  hits.innerText = scores.hits
-  misses.innerText = scores.misses
-  sunk.innerText = scores.sunk
-}
-
 function setToast(type, ship, e) {
   const thisPlayer = (activeBoard.split('-')[0] === 'player') ? opponentName : playerName
   const otherPlayer = (thisPlayer === 'player') ? playerName : opponentName
@@ -748,11 +689,9 @@ function setToast(type, ship, e) {
 
   } else if (type === 'miss') {
     new Toast().show('MISS!', oneDelay, twoDelay)
-    setScore('miss')
 
   } else if (type === 'destroy') {
     new Toast().show(`${otherPlayer}:<br> you sunk my ${ship}`, twoDelay, threeDelay)
-    setScore(ship)
 
   } else if (type === 'win') {
     new Toast().show(`${thisPlayer} WINS!`, threeDelay)
@@ -788,6 +727,9 @@ function fire(e) {
       const getShip = getShipState(e)
       if (getShip[1] === 'destroyed') {
         setToast('destroy', getShip[0])
+        setTimeout(() => {
+          setScore('destroy')
+        }, oneDelay)
       }
 
       // if destruction wins game
@@ -804,7 +746,7 @@ function fire(e) {
       setToast('miss')
       setTimeout(() => {
         renderShot(e, 'miss')
-        setScore('hit')
+        setScore('miss')
       }, oneDelay)
     }
 
@@ -824,7 +766,10 @@ function fire(e) {
       const getShip = getShipState(e)
       if (getShip[1] === 'destroyed') {
         setToast('destroy', getShip[0])
-        setShipStatus(getShip[0])
+        setTimeout(() => {
+          setShipStatus(getShip[0])
+          setScore('destroy')
+        }, oneDelay)
       }
 
       if (getGameState()) setToast('win')
@@ -839,7 +784,7 @@ function fire(e) {
       setToast('miss')
       setTimeout(() => {
         renderShot(e, 'miss')
-        setScore('hit')
+        setScore('miss')
       }, oneDelay)
     }
   }
@@ -852,17 +797,74 @@ function fire(e) {
   }
   return true
 }
-function computerChoice() {
-  let valid = false
 
-  while (!valid) {
-    let input = getRandomData()
-    let row = String.fromCharCode(input[0])
-    let col = input[1]
-    output = row + col
-    if (playerState[output] === 1 || playerState[output] === 0) valid = true
+
+//*----- tools -----*//
+
+// check if ship orientation is valid
+// ([ship name], [direction letter], [row char number], [column number])
+// (str, str, int, int)
+// ('battleship', 's', 97, 4)
+function isValid(ship, dir, row, col) {
+  if (!ship || !dir || !row || !col) return false
+
+  if (dir == 'n' && row - ships[ship] + 1 < 97) {
+    return false
+  } else if (dir == 'e' && col + ships[ship] - 1 > 10) {
+    return false
+  } else if (dir == 's' && row + ships[ship] - 1 > 106) {
+    return false
+  } else if (dir == 'w' && col - ships[ship] + 1 < 1) {
+    return false
   }
-  return output
+
+  return true
+}
+
+// todo: complete function
+// check current ship location for overlap
+// ([ship name], [row char number], [column number])
+// (str, int, int)
+// ('battleship', 97, 4)
+function isOverlap(posArr) {
+  // console.log(posArr)
+}
+
+
+// todo: simplify
+function clearBoards(element) {
+  if (element === 'ships') {
+    playerShips.forEach((cell) => {
+      var child = cell.lastElementChild
+      while (child) {
+        cell.removeChild(child);
+        child = cell.lastElementChild
+      }
+    })
+  } else if (element) {
+    var child = element.lastElementChild
+      while (child) {
+        element.removeChild(child);
+        child = element.lastElementChild
+      }
+  } else {
+    playerBoardEl.innerHTML = ''
+    opponentBoardEl.innerHTML = ''
+    playerShips.forEach((cell) => {
+      var child = cell.lastElementChild
+      while (child) {
+        cell.removeChild(child);
+        child = cell.lastElementChild
+      }
+    })
+  }
+}
+
+function updateScores() {
+  shots.innerText = scores.shots
+  hits.innerText = scores.hits
+  misses.innerText = scores.misses
+  sunk.innerText = scores.sunk
 }
 
 function disable(toggle) {
