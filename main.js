@@ -74,9 +74,11 @@ let threeDelay
 let fourDelay
 
 //! debug
+let autoSelectPlayerPieces = false
 let showOpponentPieces = true
-let enableComputer = true
+let enableComputerPlayer = true
 let displayAlerts = true
+let stopTimers = true
 //!
 
 
@@ -204,18 +206,23 @@ function init() {
   applyShipListeners()
 
   //! debug
-  // setShip('carrier', 'b5', 'w')
-  // setShip('battleship', 'f8', 'n')
-  // setShip('cruiser', 'g4', 's')
-  // setShip('sub', 'i9', 'w')
-  // setShip('destroyer', 'f6', 'n')
 
-  // introDelay = 0
-  // toastDelay = 1000
-  // oneDelay = 0
-  // twoDelay = 0
-  // threeDelay = 0
-  // fourDelay = 0
+  if (autoSelectPlayerPieces) {
+    setShip('carrier', 'b5', 'w')
+    setShip('battleship', 'f8', 'n')
+    setShip('cruiser', 'g4', 's')
+    setShip('sub', 'i9', 'w')
+    setShip('destroyer', 'f6', 'n')
+  }
+
+  if (stopTimers) {
+    introDelay = 0
+    toastDelay = 1000
+    oneDelay = 0
+    twoDelay = 0
+    threeDelay = 0
+    fourDelay = 0
+  }
 
   //!
 
@@ -527,6 +534,12 @@ function getComputerChoice() {
   return output
 }
 
+function getGrid(cell) {
+  let currentRow = cell.split('')[0]
+  let currentCol = parseInt(cell.slice(1))
+  let currentChar = currentRow.charCodeAt(0)
+  return [currentRow, currentCol, currentChar]
+}
 
 //*----- setters -----*//
 
@@ -537,15 +550,17 @@ function getComputerChoice() {
 // ('battleship', 'i9', 'n')
 function setShip(ship, cell, direction) {
   const currentCell = document.querySelector(`#${activeBoard} #${cell}`)
-  let currentRow = cell.split('')[0]
-  let currentCol = parseInt(cell.slice(1))
-  let currentChar = currentRow.charCodeAt(0) // a - j: 97 - 106
+  let currentRow = getGrid(cell)[0]
+  let currentCol = getGrid(cell)[1]
+  let currentChar = getGrid(cell)[2]
   let cellRange = []
   let nextCellEl
   let nextCell
 
+  const overlap = isOverlap(ship, cell, direction)
+
   let valid = isValid(ship, direction, currentChar, currentCol)
-  if (!valid) return false
+  if (!valid || overlap) return false
 
   // set up initial cell
   if (activeBoard === 'player-board') {
@@ -602,19 +617,20 @@ function setComputerBoard() {
     let valid = false
     let overlap = false
 
-    while (!valid && !overlap) {
+    while (!valid || overlap) {
       let randomRow = getRandomData()[0]
       let randomCol = getRandomData()[1]
       let randomDir = getRandomData()[2]
+      let rowChar = String.fromCharCode(randomRow)
+
       valid = isValid(ship, randomDir, randomRow, randomCol)
-      overlap = isOverlap(posArr)
+      overlap = isOverlap(ship, rowChar + randomCol, randomDir)
+      
       if (valid && !overlap) {
-        setShip(ship, String.fromCharCode(randomRow) + randomCol, randomDir)
+        setShip(ship, rowChar + randomCol, randomDir)
       }
     }
-    posArr = posArr.concat(opponentState.ships[ship])
   }
-  // console.log(posArr)
   initialize = false
 }
 
@@ -624,7 +640,7 @@ function setTurn() {
   if (activeBoard === 'player-board') {
     smallBoardEl.appendChild(opponentBoardEl)
     largeBoardEl.appendChild(playerBoardEl)
-    if (enableComputer) {
+    if (enableComputerPlayer) {
       setTimeout(() => {
         const targetCell = playerBoardEl.querySelector(`#${getComputerChoice()}`)
         if (!initialize) fire(targetCell)
@@ -823,11 +839,34 @@ function isValid(ship, dir, row, col) {
 
 // todo: complete function
 // check current ship location for overlap
-// ([ship name], [row char number], [column number])
-// (str, int, int)
-// ('battleship', 97, 4)
-function isOverlap(posArr) {
-  // console.log(posArr)
+// 
+// 
+function isOverlap(ship, cell, direction) {
+  let currentRow = getGrid(cell)[0]
+  let currentCol = getGrid(cell)[1]
+  let currentChar = getGrid(cell)[2]
+  let currentPos = [cell]
+
+  for (let i = 0; i < ships[ship] - 1; i++) {
+    if (direction === 'n') {
+        currentChar -= 1
+    } else if (direction === 'e') {
+        currentCol += 1
+    } else if (direction === 's') {
+        currentChar += 1
+    } else if (direction === 'w') {
+        currentCol -= 1
+    }
+    currentPos.push(String.fromCharCode(currentChar) + currentCol)
+  }
+  
+  const noOverlap = currentPos.every((currentCell) => {
+    return playerState[currentCell] === 0
+  })
+
+  return (noOverlap) ? false : true
+  
+  
 }
 
 
