@@ -73,13 +73,13 @@ let twoDelay
 let threeDelay
 let fourDelay
 
-//! debug
-let autoSelectPlayerPieces = true
-let showOpponentPieces = true
+//! dev tools
+let autoSelectPlayerPieces = false
+let showOpponentPieces = false
 let enableComputerPlayer = true
 let displayAlerts = true
-let stopTimers = true
-let showGrid = true
+let stopTimers = false
+let showGrid = false
 //!
 
 
@@ -140,7 +140,7 @@ class CreateCell {
   constructor(id, cls, text='') {
     this.el = document.createElement('div')
     this.el.setAttribute('id', id)
-    if (showGrid) this.el.innerText = id
+    if (showGrid && !id.includes('_')) this.el.innerText = id
     this.el.classList.add(cls)
     this.el.classList.add('center')
   }
@@ -558,7 +558,7 @@ function setShip(ship, cell, direction) {
   let cellRange = []
   let nextCellEl
   let nextCell
-
+  
   const overlap = isOverlap(ship, cell, direction)
 
   let valid = isValid(ship, direction, currentChar, currentCol)
@@ -864,14 +864,18 @@ function isOverlap(ship, cell, direction) {
   }
   
   const noOverlap = currentPos.every((currentCell) => {
-    return playerState[currentCell] === 0 && 
-          playerState[currentCell] !== undefined
+    if (activeBoard === 'player-board') {
+      return playerState[currentCell] === 0 && 
+              playerState[currentCell] !== undefined
+    } else {
+      return opponentState[currentCell] === 0 && 
+              opponentState[currentCell] !== undefined
+    }
   })
 
   return (noOverlap) ? false : true
-  
-  
 }
+
 
 
 // todo: simplify
