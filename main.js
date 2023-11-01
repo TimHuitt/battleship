@@ -66,6 +66,13 @@ let sunk
 let playerName = 'Player'
 let opponentName = 'Computer'
 
+
+let introDelay
+let oneDelay
+let twoDelay
+let threeDelay
+let fourDelay
+
 //! debug
 let showOpponentPieces = true
 let enableComputer = true
@@ -164,14 +171,22 @@ init()
 function init() {
   initialize = true;
   if (!activeBoard) activeBoard = 'player-board'
+
   playerState = {...playerStateTemplate}
   playerState.ships = {...playerStateTemplate.ships}
   opponentState = {...opponentStateTemplate}
   opponentState.ships = {...opponentStateTemplate.ships}
+
   shots = 0
   hits = 0
   misses = 0
   sunk = 0
+
+  introDelay = 3010
+  oneDelay = 1000
+  twoDelay = 2000
+  threeDelay = 3000
+  fourDelay = 4000
   
   setStats(1)
   clearBoards()
@@ -195,7 +210,7 @@ function init() {
     <p>1. Select a ship</p>
     <p>2. Click and drag to place</p>
     `)
-  }, 3010)
+  }, introDelay)
 
   beginTurn()
 }
@@ -476,10 +491,11 @@ function setStats(reset) {
     })
   } else {
     const text = [`Player Stats`, 
-                  `Shots <span>${shots}</span>`, 
-                  `Hits <span>${hits}</span>`, 
-                  `Misses <span>${misses}</span>`, 
-                  `Ships Sunk <span>${sunk}</span>`]
+                  `<div class="stats">Shots</div> <div>${shots}</div>`, 
+                  `<div class="stats">Hits</div> <div>${hits}</div>`, 
+                  `<div class="stats">Misses</div> <div>${misses}</div>`, 
+                  `<div class="stats">Ships Sunk</div> <div>${sunk}</div>`
+                ]
     children.forEach((child, index) => {
       child.innerHTML = text[index]
     })
@@ -521,10 +537,10 @@ function setTurn() {
       setTimeout(() => {
         const targetCell = playerBoardEl.querySelector(`#${computerChoice()}`)
         if (!initialize) fire(targetCell)
-      }, 1000)
+      }, oneDelay)
       setTimeout(() => {
         disable(0)
-      }, 4000)
+      }, fourDelay)
     } else {
       disable(0)
     }
@@ -670,16 +686,16 @@ function setToast(type, ship) {
     new Toast().show(`${thisPlayer} fires!`)
     
   } else if (type === 'hit') {
-    new Toast().show('HIT!', 1000)
+    new Toast().show('HIT!', oneDelay, twoDelay)
 
   } else if (type === 'miss') {
-    new Toast().show('MISS!', 1000)
+    new Toast().show('MISS!', oneDelay, twoDelay)
 
   } else if (type === 'destroy') {
-    new Toast().show(`${otherPlayer}: you sunk my ${ship}`, 2000)
+    new Toast().show(`${otherPlayer}: you sunk my ${ship}`, twoDelay, threeDelay)
 
   } else if (type === 'win') {
-    new Toast().show(`${thisPlayer} WINS!`, 3000)
+    new Toast().show(`${thisPlayer} WINS!`, threeDelay)
   } else {
 
   }
@@ -757,11 +773,10 @@ function fire(e) {
   } else {
     setTimeout(() => {
       setTurn()
-    }, 3000)
+    }, threeDelay)
   }
   return true
 }
-
 function computerChoice() {
   let valid = false
 
