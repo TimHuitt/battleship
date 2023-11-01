@@ -69,17 +69,20 @@ let opponentName = 'Computer'
 //! debug
 let showOpponentPieces = true
 let enableComputer = true
+let displayAlerts = true
 //!
 
 
 //*----- cached elements  -----*//
 
+const body = document.querySelector('body')
 const opponentBoardEl = document.querySelector('#opponent-board')
 const largeBoardEl = document.querySelector('#large-board-wrapper')
 const smallBoardEl = document.querySelector('#small-board-wrapper')
 const playerBoardEl = document.querySelector('#player-board')
 const playerShipsEl = document.querySelector('#player-ships-wrapper')
 const playerShips = document.querySelectorAll('#player-ships-wrapper > div')
+const toastContainer = document.querySelector('#toast-container')
 
 
 //*----- event listeners -----*//
@@ -131,7 +134,6 @@ class CreateCell {
   }
 }
 
-const toastContainer = document.querySelector('#toast-container')
 
 class Toast {
   constructor() {
@@ -179,21 +181,21 @@ function init() {
   applyShipListeners()
 
   //! debug
-  // setShip('carrier', 'b5', 'w')
-  // setShip('battleship', 'f8', 'n')
-  // setShip('cruiser', 'g4', 's')
-  // setShip('sub', 'i9', 'w')
-  // setShip('destroyer', 'f6', 'n')
+  setShip('carrier', 'b5', 'w')
+  setShip('battleship', 'f8', 'n')
+  setShip('cruiser', 'g4', 's')
+  setShip('sub', 'i9', 'w')
+  setShip('destroyer', 'f6', 'n')
   //!
 
-  new Toast().show(`Welcome to Battleship!`)
+  new Toast().show(`Welcome to Battleship!`, 1000, 2000)
   setTimeout(() => {
     new Toast().show(`
     <h3> Ship Setup </h3>
     <p>1. Select a ship</p>
     <p>2. Click and drag to place</p>
     `)
-  }, 2000)
+  }, 3010)
 
   beginTurn()
 }
@@ -295,7 +297,7 @@ function selectShip(e) {
     }
     
     if (selectedShip && initialShipCell && setShip(selectedShip, initialShipCell, dir)) {
-      new Toast().show(`${selectedShip} assigned to board`)
+      new Toast().show(`${selectedShip} assigned`)
       shipEl = document.querySelector(`#player-${selectedShip}`)
       clearBoards(shipEl)
     } else {
@@ -355,6 +357,7 @@ function renderCellHighlights(type, e) {
   const currentRow = e.target.id.split('')[0]
   const currentCol = e.target.id.slice(1)
   // type = 1: add row/col highlighting
+  
   if (type) {
     renderCellHighlights(0, e)
     boardCells.forEach((cell) => {
@@ -515,8 +518,15 @@ function setTurn() {
     smallBoardEl.appendChild(opponentBoardEl)
     largeBoardEl.appendChild(playerBoardEl)
     if (enableComputer) {
-      const targetCell = playerBoardEl.querySelector(`#${computerChoice()}`)
-      if (!initialize) fire(targetCell)
+      setTimeout(() => {
+        const targetCell = playerBoardEl.querySelector(`#${computerChoice()}`)
+        if (!initialize) fire(targetCell)
+      }, 1000)
+      setTimeout(() => {
+        disable(0)
+      }, 4000)
+    } else {
+      disable(0)
     }
   } else {
     smallBoardEl.appendChild(playerBoardEl)
@@ -652,17 +662,22 @@ function clearBoards(element) {
 
 
 function setToast(type, ship) {
-  const otherPlayer = (activeBoard.split('-')[0] === 'player') ? playerName : opponentName
-  const thisPlayer = (otherPlayer === 'player') ? opponentName : playerName
- 
+  const thisPlayer = (activeBoard.split('-')[0] === 'player') ? opponentName : playerName
+  const otherPlayer = (thisPlayer === 'player') ? playerName : opponentName
+  console.log(thisPlayer, otherPlayer)
+  console.log(type, ship)
   if (type === 'fire') {
     new Toast().show(`${thisPlayer} fires!`)
+    
   } else if (type === 'hit') {
     new Toast().show('HIT!', 1000)
+
   } else if (type === 'miss') {
     new Toast().show('MISS!', 1000)
+
   } else if (type === 'destroy') {
     new Toast().show(`${otherPlayer}: you sunk my ${ship}`, 2000)
+
   } else if (type === 'win') {
     new Toast().show(`${thisPlayer} WINS!`, 3000)
   } else {
@@ -670,13 +685,20 @@ function setToast(type, ship) {
   }
 }
 
+function disable(toggle) {
+  if (toggle) {
+    body.classList.add('disable')
+  } else {
+    body.classList.remove('disable')
+  }
+}
 // todo: simplify
-// todo: replace console logs with renders
 // todo: separate concerns
 // fire on target
 // check if hit or miss
 // check for destruction
 function fire(e) {
+  disable(1)
   // computer turn
   if (activeBoard === 'player-board') {
     setToast('fire')
@@ -733,7 +755,9 @@ function fire(e) {
   if (getGameState()) {
     init()
   } else {
-    setTurn()
+    setTimeout(() => {
+      setTurn()
+    }, 3000)
   }
   return true
 }
