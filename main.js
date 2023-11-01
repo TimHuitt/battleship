@@ -417,24 +417,29 @@ function renderCellHighlights(type, e) {
 function renderShot(cell, type) {
   if (type === 'hit') {
     cell.classList.remove('placed')
-    cell.style.background = 'red'
+    cell.classList.add('hit')
   } else if (type === 'miss') {
-    cell.style.background = 'white'
+    cell.classList.add('miss')
   }
 }
 
+const remainingEl = document.querySelector('#opponent-remaining')
 function setShipStatus(ship, reset) {
   if (reset) {
     const ships = document.querySelectorAll('#opponent-ships > div > div')
     for (let ship in ships) {
       ship.classList.remove('sunk')
     }
+    remainingEl.innerText = "Ships Remaining: 5"
   } else {
     const shipEl = document.querySelector(`#opponent-${ship}`)
+    shipsLeft = remainingEl.innerText.split(': ')[1] - 1
+    remainingEl.innerText = `Ships Remaining: ${shipsLeft}`
     shipEl.classList.add('sunk')
     console.log(shipEl)
   }
 }
+
 
 
 //*----- setters -----*//
