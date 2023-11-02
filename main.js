@@ -10,6 +10,7 @@
   // todo: ship selection lost on click (error: no dir passed)
   // todo: ship placement issue if mouse released out of bounds
 
+  // testing
 
 //*----- constants -----*//
 
@@ -253,13 +254,11 @@ function init() {
 
   // display initial welcome messages
   new Toast().show(`Welcome to Battleship!`, halfDelay, threeDelay)
-  setTimeout(() => {
-    new Toast().show(`
-    <h3> Ship Setup </h3>
+
+  new Toast().show(`
     <p>1. Select a ship</p>
-    <p>2. Click and drag to place</p>
-    `)
-  }, introDelay)
+    <p>2. Drag to place</p>
+    `, introDelay)
 
   beginTurn()
 }
@@ -687,6 +686,13 @@ function setComputerBoard() {
     }
   }
   initialize = false
+}
+
+function getRandomData() {
+  let randomRow = Math.floor(Math.random() * (106-97) + 97)
+  let randomCol = Math.floor(Math.random() * (10 - 1) + 1)
+  let randomDir = ['n', 'e', 's', 'w'][Math.floor(Math.random() * 4)]
+  return [randomRow, randomCol, randomDir]
 }
 
 // toggle current turn
