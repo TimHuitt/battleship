@@ -224,15 +224,15 @@ function init() {
   renderBoard(opponentBoardEl)
   applyShipListeners()
 
-  tap = new Audio('https://github.com/TimHuitt/battleship/blob/main/tap.mp3')
-  click = new Audio('https://github.com/TimHuitt/battleship/blob/main/click.mp3')
-  snap = new Audio('https://github.com/TimHuitt/battleship/blob/main/snap.mp3')
-  boom = new Audio('https://github.com/TimHuitt/battleship/blob/main/boom.mp3')
-  sink = new Audio('https://github.com/TimHuitt/battleship/blob/main/sink.mp3')
-  splash = new Audio('https://github.com/TimHuitt/battleship/blob/main/splash.mp3')
-  invalid = new Audio('https://github.com/TimHuitt/battleship/blob/main/invalid.mp3')
-  win = new Audio('https://github.com/TimHuitt/battleship/blob/main/win.mp3')
-  lose = new Audio('https://github.com/TimHuitt/battleship/blob/main/lose.mp3')
+  tap = new Audio('https://github.com/TimHuitt/battleship/blob/main/tap.mp3?raw=true')
+  click = new Audio('https://github.com/TimHuitt/battleship/blob/main/click.mp3?raw=true')
+  snap = new Audio('https://github.com/TimHuitt/battleship/blob/main/snap.mp3?raw=true')
+  boom = new Audio('https://github.com/TimHuitt/battleship/blob/main/boom.mp3?raw=true')
+  sink = new Audio('https://github.com/TimHuitt/battleship/blob/main/sink.mp3?raw=true')
+  splash = new Audio('https://github.com/TimHuitt/battleship/blob/main/splash.mp3?raw=true')
+  invalid = new Audio('https://github.com/TimHuitt/battleship/blob/main/invalid.mp3?raw=true')
+  win = new Audio('https://github.com/TimHuitt/battleship/blob/main/win.mp3?raw=true')
+  lose = new Audio('https://github.com/TimHuitt/battleship/blob/main/lose.mp3?raw=true')
   splash.volume = 0.6
   
 
