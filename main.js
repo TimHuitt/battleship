@@ -1,11 +1,6 @@
 // todo: Functionality
   // todo: simplify all functions with if(player)else(opponent)
 
-// todo: DOM
-  // todo: display turn message
-  // todo: display current ship selected for placement
-  // todo: maintain highlight when ship selected for placement
-
 // todo: Styling
   // todo: add board switch animation
   // todo: fade in/out messages
@@ -13,12 +8,9 @@
 // todo: Bugs
   // todo: ship selection lost on click (no dir passed)
   // todo: ship placement issue if mouse released out of bounds
-  // todo: dragging during firing stage breaks board
-
+  // todo: dragging during firing stage applys background color to container
 
 // todo: priority:
-  // todo: ship selection indicators during placement
-  // todo: player turn indicator
   // todo: fix placement issues (bubbling/out of bounds)
 
 
@@ -80,8 +72,8 @@ let fourDelay
 let sixDelay
 
 //! dev tools
-let autoSelectPlayerPieces = false
-let showOpponentPieces = true
+let autoSelectPlayerPieces = true
+let showOpponentPieces = false
 let enableComputerPlayer = true
 let displayAlerts = true
 let stopTimers = false
@@ -105,8 +97,6 @@ const toastContainer = document.querySelector('#toast-container')
 
 function applyListeners() {
   largeBoardEl.addEventListener('click', handleBoardEvent)
-  largeBoardEl.addEventListener('mousedown', handleBoardEvent)
-  largeBoardEl.addEventListener('mouseup', handleBoardEvent)
   largeBoardEl.addEventListener('mouseover', handleBoardEvent)
   largeBoardEl.addEventListener('mouseleave', handleBoardEvent)
 }
@@ -127,15 +117,15 @@ function removeShipListeners() {
   playerShipsEl.removeEventListener('mouseleave', handleShipEvent)
 }
 
-function addInitListeners() {
+function applySelectionListeners() {
   largeBoardEl.addEventListener('click', renderShipSelection)
-  largeBoardEl.addEventListener('mousedown', renderShipSelection)
   largeBoardEl.addEventListener('mouseup', renderShipSelection)
+  largeBoardEl.addEventListener('mousedown', renderShipSelection)
 }
-function removeInitListeners() {
+function removeSelectionListeners() {
   largeBoardEl.removeEventListener('click', renderShipSelection)
-  largeBoardEl.removeEventListener('mousedown', renderShipSelection)
   largeBoardEl.removeEventListener('mouseup', renderShipSelection)
+  largeBoardEl.removeEventListener('mousedown', renderShipSelection)
 }
 
 
@@ -145,12 +135,13 @@ function removeInitListeners() {
 class CreateCell {
   constructor(id, cls, text='') {
     this.el = document.createElement('div')
-    this.el.setAttribute('id', id)
-    if (showGrid && !id.includes('_')) this.el.innerText = id
+    if (id) this.el.setAttribute('id', id)
+    if (showGrid && !id.includes('_')) this.el.innerText = text
     this.el.classList.add(cls)
     this.el.classList.add('center')
   }
 }
+
 
 // create visual notification containing
 // msg = message to appear inside container
@@ -268,7 +259,7 @@ function beginTurn() {
     clearBoards('ships')
     renderStats()
     removeShipListeners()
-    removeInitListeners()
+    removeSelectionListeners()
     applyListeners()
     setTurn()
     setComputerBoard()
@@ -278,7 +269,9 @@ function beginTurn() {
 //*----- handlers -----*//
 
 function handleBoardEvent(e) {
-  if (e.type === 'click' && !e.target.id.includes('wrapper')) fire(e.target)
+  if (e.type === 'click' && 
+      !e.target.id.includes('wrapper') &&
+      !e.target.id.includes('board')) { fire(e.target) }
 
   if (e.type === 'mouseover' && !e.target.id.includes('wrapper')) {
     renderCellHighlights(1, e)
@@ -320,10 +313,9 @@ function handleShipEvent(e) {
 function renderShipSelection(e) {
 
   if (e.target.id.includes('player') && !e.target.id.includes('wrapper')) {
-    removeListeners()
-    addInitListeners()
-
     selectedShip = e.target.id.split('-')[1]
+    removeListeners()
+    applySelectionListeners()
 
   } else if (!initialShipCell && !e.target.id.includes('wrapper')) {
     initialShipCell = e.target.id
@@ -354,6 +346,7 @@ function renderShipSelection(e) {
       shipEl = document.querySelector(`#player-${selectedShip}`)
       clearBoards(shipEl)
     } else {
+      switchHighlight()
       new Toast().show('invalid placement. try again')
     }
 
@@ -367,7 +360,7 @@ function renderShipSelection(e) {
 
   if (e.target.parentNode.id.includes('ships-wrapper')) {
     switchHighlight(e)
-    new Toast().show(`${selectedShip} selected`, 0, twoDelay)
+    new Toast().show(`placing ${selectedShip}`, 0, twoDelay)
   }
   
   function switchHighlight(e) {
@@ -453,10 +446,14 @@ function renderCellHighlights(type, e) {
 
 function renderShot(cell, type) {
   if (type === 'hit') {
-    cell.classList.remove('placed')
-    cell.classList.add('hit')
+    const peg = new CreateCell('', 'hit')
+    cell.appendChild(peg.el)
+    // cell.classList.remove('placed')
+    // cell.classList.add('hit')
   } else if (type === 'miss') {
-    cell.classList.add('miss')
+    const peg = new CreateCell('', 'miss')
+    cell.appendChild(peg.el)
+    // cell.classList.add('miss')
   }
 }
 
@@ -680,6 +677,7 @@ function setTurn() {
       disable(0)
     }
   } else {
+    new Toast().show(`PLAYER'S TURN`)
     smallBoardEl.appendChild(playerBoardEl)
     largeBoardEl.appendChild(opponentBoardEl)
   }
