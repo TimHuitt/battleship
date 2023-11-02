@@ -224,16 +224,16 @@ function init() {
   renderBoard(opponentBoardEl)
   applyShipListeners()
 
-  tap = new Audio('/tap.mp3')
-  click = new Audio('/click.mp3')
-  snap = new Audio('/snap.mp3')
-  boom = new Audio('/boom.mp3')
-  sink = new Audio('/sink.mp3')
-  splash = new Audio('/splash.mp3')
+  tap = new Audio('https://github.com/TimHuitt/battleship/blob/main/tap.mp3')
+  click = new Audio('https://github.com/TimHuitt/battleship/blob/main/click.mp3')
+  snap = new Audio('https://github.com/TimHuitt/battleship/blob/main/snap.mp3')
+  boom = new Audio('https://github.com/TimHuitt/battleship/blob/main/boom.mp3')
+  sink = new Audio('https://github.com/TimHuitt/battleship/blob/main/sink.mp3')
+  splash = new Audio('https://github.com/TimHuitt/battleship/blob/main/splash.mp3')
+  invalid = new Audio('https://github.com/TimHuitt/battleship/blob/main/invalid.mp3')
+  win = new Audio('https://github.com/TimHuitt/battleship/blob/main/win.mp3')
+  lose = new Audio('https://github.com/TimHuitt/battleship/blob/main/lose.mp3')
   splash.volume = 0.6
-  invalid = new Audio('/invalid.mp3')
-  win = new Audio('/win.mp3')
-  lose = new Audio('/lose.mp3')
   
 
   //! debug
