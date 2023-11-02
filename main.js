@@ -224,16 +224,16 @@ function init() {
   renderBoard(opponentBoardEl)
   applyShipListeners()
 
-  tap = new Audio('/res/sound/tap.mp3')
-  click = new Audio('/res/sound/click.mp3')
-  snap = new Audio('/res/sound/snap.mp3')
-  boom = new Audio('/res/sound/boom.mp3')
-  sink = new Audio('/res/sound/sink.mp3')
-  splash = new Audio('/res/sound/splash.mp3')
+  tap = new Audio('/tap.mp3')
+  click = new Audio('/click.mp3')
+  snap = new Audio('/snap.mp3')
+  boom = new Audio('/boom.mp3')
+  sink = new Audio('/sink.mp3')
+  splash = new Audio('/splash.mp3')
   splash.volume = 0.6
-  invalid = new Audio('/res/sound/invalid.mp3')
-  win = new Audio('/res/sound/win.mp3')
-  lose = new Audio('/res/sound/lose.mp3')
+  invalid = new Audio('/invalid.mp3')
+  win = new Audio('/win.mp3')
+  lose = new Audio('/lose.mp3')
   
 
   //! debug
