@@ -70,17 +70,17 @@
 
 - [ ] 3. Monday/Tuesday - Interactions + Advanced UI Updates
 
-   - [ ] Link Interactive elements to callback functions (if not previously done)
-     - [ ] Each handler will call one or more helper functions that will change state
-     - [ ] After all helper functions execute, call the render() function
-     - [ ] The user should see feedback about the game state after each interaction
+   - [x] Link Interactive elements to callback functions (if not previously done)
+     - [x] Each handler will call one or more helper functions that will change state
+     - [x] After all helper functions execute, call the render() function
+     - [x] The user should see feedback about the game state after each interaction
 
-   - [ ] Continue working on controller functions to account for game logic
-     - [ ] Identify which state values determine a ‘game over’ 
-     - [ ] Verify that the game can be played from start to ‘game over’
-     - [ ] Implement a ‘game over’ message and play again option
+   - [x] Continue working on controller functions to account for game logic
+     - [x] Identify which state values determine a ‘game over’ 
+     - [x] Verify that the game can be played from start to ‘game over’
+     - [x] Implement a ‘game over’ message and play again option
      - [ ] Remove any non-restart related handlers
-     - [ ] Reset the state if play again is selected.
+     - [x] Reset the state if play again is selected.
 
    - [ ] Stretch: Begin building gameplay ‘quality of life’ features:
      - [ ] Start buttons
@@ -90,9 +90,9 @@
 - [ ] 4. Tuesday/Wednesday - Refine Gameplay + Stretch goals
    * Deploy application on Github
 
-   - [ ] Testing local and deployed codebase
-     - [ ] Verify MVP code runs without error start to finish
-     - [ ] Verify no debugging console.logs appear in the deployed game
+   - [x] Testing local and deployed codebase
+     - [x] Verify MVP code runs without error start to finish
+     - [x] Verify no debugging console.logs appear in the deployed game
 
    - [ ] Add stretch goals from the feature list
      - [ ] Examples include (choosing one)
@@ -116,3 +116,15 @@
    - [ ] Review Documentation Guidelines and update Readme.md
 
    - [ ] Test code on GH pages to verify desired MVP functionality is present
+
+- [ ] 7. README.md file with these sections:
+
+   - [ ] Game Title: A description of your game. Background info of the game is a nice touch.
+
+   - [ ] Screenshot(s): Images of your actual game.
+
+   - [ ] Technologies: List of the technologies used, e.g., JavaScript, HTML, CSS...
+
+   - [ ] Getting Started: In this section include the link to your deployed game and any instructions you deem important.
+
+   - [ ] Next Steps: Planned future enhancements (icebox items).

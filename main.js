@@ -1,21 +1,25 @@
 // todo: Functionality
-  // todo: detect overlapping ship placement
   // todo: simplify all functions with if(player)else(opponent)
 
 // todo: DOM
   // todo: display turn message
-  // todo: fix end game message timing
-  // todo: reset computer stats on game restart
+  // todo: display current ship selected for placement
+  // todo: maintain highlight when ship selected for placement
 
 // todo: Styling
   // todo: add board switch animation
   // todo: fade in/out messages
 
 // todo: Bugs
-  // todo: ship selection lost on try again
   // todo: ship selection lost on click (no dir passed)
-  // todo: ship placement issue if release out of bounds
+  // todo: ship placement issue if mouse released out of bounds
   // todo: dragging during firing stage breaks board
+
+
+// todo: priority:
+  // todo: ship selection indicators during placement
+  // todo: player turn indicator
+  // todo: fix placement issues (bubbling/out of bounds)
 
 
 //*----- constants -----*//
@@ -63,19 +67,21 @@ let selectedShip // ship placement str
 let initialShipCell // ship placement str
 let shipDirCell // ship placement str
 
-let playerName
-let opponentName
+let playerName // 'name'
+let opponentName // 'name'
 
+// timing delays (ms)
 let introDelay
 let toastDelay
 let oneDelay
 let twoDelay
 let threeDelay
 let fourDelay
+let sixDelay
 
 //! dev tools
 let autoSelectPlayerPieces = false
-let showOpponentPieces = false
+let showOpponentPieces = true
 let enableComputerPlayer = true
 let displayAlerts = true
 let stopTimers = false
@@ -146,7 +152,10 @@ class CreateCell {
   }
 }
 
-
+// create visual notification containing
+// msg = message to appear inside container
+// delay = time before message disappears
+// timeout = time before message appears
 class Toast {
   constructor() {
     this.el = document.createElement('div')
@@ -162,7 +171,6 @@ class Toast {
       
       setTimeout(() => { this.hide() }, timeout)
     }, delay)
-    
   }
 
   hide() {
@@ -175,6 +183,7 @@ class Toast {
 
 init()
 
+// set up initial game states
 function init() {
   playerName = 'Player'
   opponentName = 'Computer'
@@ -194,12 +203,14 @@ function init() {
 
   introDelay = 2010
   toastDelay = 3000
+  halfDelay = 500
   oneDelay = 1000
   twoDelay = 2000
   threeDelay = 3000
   fourDelay = 4000
+  sixDelay = 6000
   
-  
+  setShipStatus('', 1)
   renderStats(1)
   clearBoards()
   renderBoard(playerBoardEl)
@@ -208,7 +219,6 @@ function init() {
   applyShipListeners()
 
   //! debug
-
   if (autoSelectPlayerPieces) {
     setShip('carrier', 'b5', 'w')
     setShip('battleship', 'f8', 'n')
@@ -216,19 +226,20 @@ function init() {
     setShip('sub', 'i9', 'w')
     setShip('destroyer', 'f6', 'n')
   }
-
   if (stopTimers) {
     introDelay = 0
     toastDelay = 1000
+    halfDelay = 0
     oneDelay = 0
     twoDelay = 0
     threeDelay = 0
     fourDelay = 0
+    sixDelay = 0
   }
-
   //!
 
-  new Toast().show(`Welcome to Battleship!`, 500, 3000)
+  // display initial welcome messages
+  new Toast().show(`Welcome to Battleship!`, halfDelay, threeDelay)
   setTimeout(() => {
     new Toast().show(`
     <h3> Ship Setup </h3>
@@ -240,10 +251,11 @@ function init() {
   beginTurn()
 }
 
+// initialize first turn
+// determine if ships have been places
+// if ships remain for placement, 
 function beginTurn() {
   if (activeBoard === 'opponent-board') setTurn()
-
-  
 
   let shipsLen = 0
   for (const ship in playerState.ships) {
@@ -263,7 +275,6 @@ function beginTurn() {
   }  
 }
 
-
 //*----- handlers -----*//
 
 function handleBoardEvent(e) {
@@ -280,10 +291,9 @@ function handleBoardEvent(e) {
 
 function handleShipEvent(e) {
   if (!e.target.id.includes('wrapper')) {
+    
     if (e.type === 'mouseover') {
-
       clearShipHighlights()
-
       const el = document.querySelector(`#${e.target.id}`)
       el.classList.add('over')
     }
@@ -308,9 +318,11 @@ function handleShipEvent(e) {
 //*----- rendering -----*//
 
 function renderShipSelection(e) {
+
   if (e.target.id.includes('player') && !e.target.id.includes('wrapper')) {
     removeListeners()
     addInitListeners()
+
     selectedShip = e.target.id.split('-')[1]
 
   } else if (!initialShipCell && !e.target.id.includes('wrapper')) {
@@ -318,7 +330,6 @@ function renderShipSelection(e) {
 
   } else if (!shipDirCell && !e.target.id.includes('wrapper')) {
     shipDirCell = e.target.id
-
     let startRow = initialShipCell.split('')[0]
     let startCol = parseInt(initialShipCell.slice(1))
     startRow = startRow.charCodeAt(0) // a - j: 97 - 106
@@ -339,6 +350,7 @@ function renderShipSelection(e) {
     
     if (selectedShip && initialShipCell && setShip(selectedShip, initialShipCell, dir)) {
       new Toast().show(`${selectedShip} assigned`)
+      switchHighlight()  
       shipEl = document.querySelector(`#player-${selectedShip}`)
       clearBoards(shipEl)
     } else {
@@ -350,6 +362,20 @@ function renderShipSelection(e) {
     initialShipCell = ''
     shipDirCell = ''
     beginTurn()
+  }
+
+
+  if (e.target.parentNode.id.includes('ships-wrapper')) {
+    switchHighlight(e)
+    new Toast().show(`${selectedShip} selected`, 0, twoDelay)
+  }
+  
+  function switchHighlight(e) {
+    const ships = document.querySelectorAll('#player-ships-wrapper div')
+    ships.forEach((el) => {
+      el.classList.remove('selected')
+    })
+    if (e) e.target.classList.add('selected')
   }
 }
 
@@ -558,10 +584,10 @@ function setShip(ship, cell, direction) {
   let cellRange = []
   let nextCellEl
   let nextCell
-  
-  const overlap = isOverlap(ship, cell, direction)
 
-  let valid = isValid(ship, direction, currentChar, currentCol)
+  const overlap = isOverlap(ship, cell, direction)
+  const valid = isValid(ship, direction, currentChar, currentCol)
+
   if (!valid || overlap) return false
 
   // set up initial cell
@@ -629,7 +655,6 @@ function setComputerBoard() {
 
       
       if (valid && !overlap) {
-        console.log(ship, rowChar + randomCol, randomDir)
         setShip(ship, rowChar + randomCol, randomDir)
       }
     }
@@ -664,8 +689,8 @@ function setTurn() {
 function setShipStatus(ship, reset) {
   const remainingEl = document.querySelector('#opponent-remaining')
   if (reset) {
-    const ships = document.querySelectorAll('#opponent-ships > div > div')
-    for (let shipEl in ships) {
+    const ships = document.querySelectorAll('#opponent-ships div div')
+    for (let shipEl of ships) {
       shipEl.classList.remove('sunk')
     }
     remainingEl.innerText = "Ships Remaining: 5"
@@ -680,12 +705,14 @@ function setShipStatus(ship, reset) {
 // type = hit/miss/shipname
 function setScore(type) {
   if (activeBoard !== 'player-board') {
-    scores.shots++
+    
     switch (type) {
       case 'hit':
+        scores.shots++
         scores.hits++
         break
       case 'miss':
+        scores.shots++
         scores.misses++
         break
       default:
@@ -710,7 +737,7 @@ function setToast(type, ship, e) {
     new Toast().show('MISS!', oneDelay, twoDelay)
 
   } else if (type === 'destroy') {
-    new Toast().show(`${otherPlayer}:<br> you sunk my ${ship}`, twoDelay, threeDelay)
+    new Toast().show(`${otherPlayer}:<br> You sunk my ${ship}!`, twoDelay, threeDelay)
 
   } else if (type === 'win') {
     new Toast().show(`${thisPlayer} WINS!`, threeDelay)
@@ -721,7 +748,6 @@ function setToast(type, ship, e) {
 }
 
 // todo: simplify
-// todo: separate concerns
 // fire on target
 // check if hit or miss
 // check for destruction
@@ -808,7 +834,9 @@ function fire(e) {
     }
   }
   if (getGameState()) {
-    init()
+    setTimeout(() => {
+      init()
+    }, sixDelay)
   } else {
     setTimeout(() => {
       setTurn()
