@@ -77,12 +77,13 @@ let threeDelay
 let fourDelay
 let sixDelay
 
-let tap;
-let click;
-let snap;
-let boom;
-let splash;
-let invalid;
+let tap
+let click
+let snap
+let boom
+let splash
+let invalid
+let win
 
 //! dev tools
 let autoSelectPlayerPieces = false
@@ -228,7 +229,7 @@ function init() {
   boom = new Audio('/res/sound/boom.mp3')
   sink = new Audio('/res/sound/sink.mp3')
   splash = new Audio('/res/sound/splash.mp3')
-  splash.volume = 0.3
+  splash.volume = 0.6
   invalid = new Audio('/res/sound/invalid.mp3')
   win = new Audio('/res/sound/win.mp3')
   lose = new Audio('/res/sound/lose.mp3')
