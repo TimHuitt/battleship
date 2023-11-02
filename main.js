@@ -1,9 +1,3 @@
-// Sound Effects by 
-//    <a href="https://pixabay.com/users/soundreality-31074404/?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=171782">Jurij</a> from <a href="https://pixabay.com/sound-effects//?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=171782">Pixabay</a>
-//    <a href="https://pixabay.com/?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=6258">Pixabay</a>
-//    <a href="https://pixabay.com/users/lordsonny-38439655/?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=171285">LordSonny</a> from <a href="https://pixabay.com/sound-effects//?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=171285">Pixabay</a>
-//    <a href="https://pixabay.com/users/666herohero-25759907/?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=21156">666HeroHero</a> from <a href="https://pixabay.com//?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=21156">Pixabay</a>
-
 // todo: Functionality
   // todo: simplify all functions with if(player)else(opponent)
 
@@ -13,12 +7,8 @@
   // todo: outline sunken ships
   
 // todo: Bugs
-  // todo: ship selection lost on click (no dir passed)
+  // todo: ship selection lost on click (error: no dir passed)
   // todo: ship placement issue if mouse released out of bounds
-  // todo: dragging during firing stage applys background color to container
-
-// todo: priority:
-  // todo: fix placement issues (bubbling/out of bounds)
 
 
 //*----- constants -----*//
@@ -93,6 +83,7 @@ let showGrid = false
 let disableComputerPlayer = false
 let disableAlerts = false
 let disableTimers = false
+let disableSounds = false
 //!
 
 
@@ -160,8 +151,8 @@ class CreateCell {
 
 // create visual notification containing
 // msg = message to appear inside container
-// delay = time before message disappears
-// timeout = time before message appears
+// delay = time before message appears
+// timeout = time before message disappears
 class Toast {
   constructor() {
     this.el = document.createElement('div')
@@ -174,13 +165,15 @@ class Toast {
       this.el.innerHTML = msg
       this.el.classList.add('show')
       toastContainer.appendChild(this.el)
-      
       setTimeout(() => { this.hide() }, timeout)
     }, delay)
   }
 
   hide() {
     this.el.classList.remove('show')
+    setTimeout(() => {
+      this.el.remove()
+    })
   }
 }
 
@@ -224,16 +217,18 @@ function init() {
   renderBoard(opponentBoardEl)
   applyShipListeners()
 
-  tap = new Audio('./tap.mp3')
-  click = new Audio('./click.mp3')
-  snap = new Audio('./snap.mp3')
-  boom = new Audio('./boom.mp3')
-  sink = new Audio('./sink.mp3')
-  splash = new Audio('./splash.mp3')
-  splash.volume = 0.6
-  invalid = new Audio('./invalid.mp3')
-  win = new Audio('./win.mp3')
-  lose = new Audio('./lose.mp3')
+  if (!disableSounds) {
+    tap = new Audio('./res/sounds/tap.mp3')
+    click = new Audio('./res/sounds/click.mp3')
+    snap = new Audio('./res/sounds/snap.mp3')
+    boom = new Audio('./res/sounds/boom.mp3')
+    sink = new Audio('./res/sounds/sink.mp3')
+    splash = new Audio('./res/sounds/splash.mp3')
+    splash.volume = 0.6
+    invalid = new Audio('./res/sounds/invalid.mp3')
+    win = new Audio('./res/sounds/win.mp3')
+    lose = new Audio('./res/sounds/lose.mp3')
+  }
   
 
   //! debug
@@ -346,10 +341,11 @@ function renderShipSelection(e) {
     removeListeners()
     applySelectionListeners()
 
-  } else if (!initialShipCell && !e.target.id.includes('wrapper')) {
+  } else if (selectedShip && !initialShipCell && !e.target.id.includes('wrapper')) {
     initialShipCell = e.target.id
-
   } else if (!shipDirCell && !e.target.id.includes('wrapper')) {
+    console.log(initialShipCell,e.target.id)
+    if (!initialShipCell || initialShipCell === e.target.id) return
     shipDirCell = e.target.id
     let startRow = initialShipCell.split('')[0]
     let startCol = parseInt(initialShipCell.slice(1))
