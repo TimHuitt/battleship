@@ -1,3 +1,9 @@
+// Sound Effects by 
+//    <a href="https://pixabay.com/users/soundreality-31074404/?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=171782">Jurij</a> from <a href="https://pixabay.com/sound-effects//?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=171782">Pixabay</a>
+//    <a href="https://pixabay.com/?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=6258">Pixabay</a>
+//    <a href="https://pixabay.com/users/lordsonny-38439655/?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=171285">LordSonny</a> from <a href="https://pixabay.com/sound-effects//?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=171285">Pixabay</a>
+//    <a href="https://pixabay.com/users/666herohero-25759907/?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=21156">666HeroHero</a> from <a href="https://pixabay.com//?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=21156">Pixabay</a>
+
 // todo: Functionality
   // todo: simplify all functions with if(player)else(opponent)
 
@@ -71,13 +77,20 @@ let threeDelay
 let fourDelay
 let sixDelay
 
+let tap;
+let click;
+let snap;
+let boom;
+let splash;
+let invalid;
+
 //! dev tools
-let autoSelectPlayerPieces = true
+let autoSelectPlayerPieces = false
 let showOpponentPieces = false
-let enableComputerPlayer = true
-let displayAlerts = true
-let stopTimers = false
 let showGrid = false
+let disableComputerPlayer = false
+let disableAlerts = false
+let disableTimers = false
 //!
 
 
@@ -154,7 +167,7 @@ class Toast {
   }
 
   show(msg, delay = 0, timeout = toastDelay) {
-    if (!displayAlerts) return
+    if (disableAlerts) return
     setTimeout(() => {
       this.el.innerHTML = msg
       this.el.classList.add('show')
@@ -209,6 +222,18 @@ function init() {
   renderBoard(opponentBoardEl)
   applyShipListeners()
 
+  tap = new Audio('/res/sound/tap.mp3')
+  click = new Audio('/res/sound/click.mp3')
+  snap = new Audio('/res/sound/snap.mp3')
+  boom = new Audio('/res/sound/boom.mp3')
+  sink = new Audio('/res/sound/sink.mp3')
+  splash = new Audio('/res/sound/splash.mp3')
+  splash.volume = 0.3
+  invalid = new Audio('/res/sound/invalid.mp3')
+  win = new Audio('/res/sound/win.mp3')
+  lose = new Audio('/res/sound/lose.mp3')
+  
+
   //! debug
   if (autoSelectPlayerPieces) {
     setShip('carrier', 'b5', 'w')
@@ -217,7 +242,7 @@ function init() {
     setShip('sub', 'i9', 'w')
     setShip('destroyer', 'f6', 'n')
   }
-  if (stopTimers) {
+  if (disableTimers) {
     introDelay = 0
     toastDelay = 1000
     halfDelay = 0
@@ -311,8 +336,10 @@ function handleShipEvent(e) {
 //*----- rendering -----*//
 
 function renderShipSelection(e) {
-
   if (e.target.id.includes('player') && !e.target.id.includes('wrapper')) {
+    click.load()
+    click.play()
+
     selectedShip = e.target.id.split('-')[1]
     removeListeners()
     applySelectionListeners()
@@ -341,11 +368,15 @@ function renderShipSelection(e) {
     }
     
     if (selectedShip && initialShipCell && setShip(selectedShip, initialShipCell, dir)) {
+      snap.load()
+      snap.play()
       new Toast().show(`${selectedShip} assigned`)
       switchHighlight()  
       shipEl = document.querySelector(`#player-${selectedShip}`)
       clearBoards(shipEl)
     } else {
+      invalid.load()
+      invalid.play()
       switchHighlight()
       new Toast().show('invalid placement. try again')
     }
@@ -431,7 +462,8 @@ function renderCellHighlights(type, e) {
             cell.id.split('')[0] !== currentRow) {
               return
         }
-        
+        tap.load()
+        tap.play()
         cell.classList.add('row-col-highlight')
       }
     })
@@ -665,7 +697,7 @@ function setTurn() {
   if (activeBoard === 'player-board') {
     smallBoardEl.appendChild(opponentBoardEl)
     largeBoardEl.appendChild(playerBoardEl)
-    if (enableComputerPlayer) {
+    if (!disableComputerPlayer) {
       setTimeout(() => {
         const targetCell = playerBoardEl.querySelector(`#${getComputerChoice()}`)
         if (!initialize) fire(targetCell)
@@ -739,8 +771,19 @@ function setToast(type, ship, e) {
 
   } else if (type === 'win') {
     new Toast().show(`${thisPlayer} WINS!`, threeDelay)
+    setTimeout(() => {
+      if (activeBoard === 'opponent-board') {
+        win.load()
+        win.play()
+      } else {
+        lose.load()
+        lose.play()
+      }
+    }, oneDelay)
 
   } else {
+    invalid.load()
+    invalid.play()
     new Toast().show(`Invalid Selection:<br>Try again...`, oneDelay, twoDelay)
   }
 }
@@ -752,6 +795,8 @@ function setToast(type, ship, e) {
 function fire(e) {
   //disable interaction
   disable(1)
+  click.load()
+  click.play()
 
   // computer turn
   if (activeBoard === 'player-board') {
@@ -759,9 +804,12 @@ function fire(e) {
 
     // if selection is a hit
     if (playerState[e.id] === 1) {
+
       playerState[e.id] = -1
       setToast('hit')
       setTimeout(() => {
+        boom.load()
+        boom.play()
         renderShot(e, 'hit')
         setScore('hit')
       }, oneDelay)
@@ -771,23 +819,32 @@ function fire(e) {
       if (getShip[1] === 'destroyed') {
         setToast('destroy', getShip[0])
         setTimeout(() => {
+          sink.load()
+          sink.play()
           setScore('destroy')
         }, oneDelay)
       }
 
-      // if destruction wins game
-      if (getGameState()) setToast('win')
+      // if destruction win game
+      if (getGameState()) {
+        setToast('win')
+      }
 
     // if already selected
     } else if (playerState[e.id] === -1 || 
       playerState[e.id] === 2) {
+        invalid.load()
+        invalid.play()
         setToast('Invalid selection... Try again')
         disable(0)
       return false
     } else {
+
       playerState[e.id] = 2
       setToast('miss')
       setTimeout(() => {
+        splash.load()
+        splash.play()
         renderShot(e, 'miss')
         setScore('miss')
       }, oneDelay)
@@ -799,9 +856,12 @@ function fire(e) {
 
     // if cell is occupied
     if (opponentState[e.id] === 1) {
+
       opponentState[e.id] = -1
       setToast('hit')
       setTimeout(() => {
+        boom.load()
+        boom.play()
         renderShot(e, 'hit')
         setScore('hit')
       }, oneDelay)
@@ -810,6 +870,8 @@ function fire(e) {
       if (getShip[1] === 'destroyed') {
         setToast('destroy', getShip[0])
         setTimeout(() => {
+          sink.load()
+          sink.play()
           setShipStatus(getShip[0])
           setScore('destroy')
         }, oneDelay)
@@ -819,6 +881,8 @@ function fire(e) {
 
     } else if (opponentState[e.id] === -1 || 
               opponentState[e.id] === 2) {
+      invalid.load()
+      invalid.play()
       setToast('Invalid selection... Try again')
       disable(0)
       return false
@@ -826,6 +890,8 @@ function fire(e) {
       opponentState[e.id] = 2
       setToast('miss')
       setTimeout(() => {
+        splash.load()
+        splash.play()
         renderShot(e, 'miss')
         setScore('miss')
       }, oneDelay)
