@@ -10,7 +10,8 @@
 // todo: Styling
   // todo: add board switch animation
   // todo: fade in/out messages
-
+  // todo: outline sunken ships
+  
 // todo: Bugs
   // todo: ship selection lost on click (no dir passed)
   // todo: ship placement issue if mouse released out of bounds
