@@ -10,7 +10,6 @@
   // todo: ship selection lost on click (error: no dir passed)
   // todo: ship placement issue if mouse released out of bounds
 
-  // testing
 
 //*----- constants -----*//
 
@@ -328,22 +327,45 @@ function handleShipEvent(e) {
   }
 }
 
+function playSound(sound, duration) {
+  try {
+    sound.pause()
+    sound.currentTime = 0
+    const playPromise = sound.play()
+    if (playPromise !== undefined) {
+      playPromise
+        .then(() => {
+          // Playback started successfully
+        })
+        .catch(error => {
+          return
+        })
+    }
+  } catch {
+    return
+  }
+}
 
 //*----- rendering -----*//
 
+// select and place ship on board
 function renderShipSelection(e) {
+
+  // if selecting a ship
   if (e.target.id.includes('player') && !e.target.id.includes('wrapper')) {
-    click.load()
-    click.play()
+    playSound(click, 500)
 
     selectedShip = e.target.id.split('-')[1]
     removeListeners()
     applySelectionListeners()
 
+  // select ship starting position
   } else if (selectedShip && !initialShipCell && !e.target.id.includes('wrapper')) {
     initialShipCell = e.target.id
+
+  // select ship end position
+  // determine direction
   } else if (!shipDirCell && !e.target.id.includes('wrapper')) {
-    console.log(initialShipCell,e.target.id)
     if (!initialShipCell || initialShipCell === e.target.id) return
     shipDirCell = e.target.id
     let startRow = initialShipCell.split('')[0]
@@ -364,16 +386,16 @@ function renderShipSelection(e) {
       dir = 'e'
     }
     
+    // ship placement success
     if (selectedShip && initialShipCell && setShip(selectedShip, initialShipCell, dir)) {
-      snap.load()
-      snap.play()
+      playSound(snap, 500)
       new Toast().show(`${selectedShip} assigned`)
       switchHighlight()  
       shipEl = document.querySelector(`#player-${selectedShip}`)
       clearBoards(shipEl)
+    // ship placement failure
     } else {
-      invalid.load()
-      invalid.play()
+      playSound(invalid, 500)
       switchHighlight()
       new Toast().show('invalid placement. try again')
     }
@@ -384,7 +406,6 @@ function renderShipSelection(e) {
     shipDirCell = ''
     beginTurn()
   }
-
 
   if (e.target.parentNode.id.includes('ships-wrapper')) {
     switchHighlight(e)
@@ -459,8 +480,7 @@ function renderCellHighlights(type, e) {
             cell.id.split('')[0] !== currentRow) {
               return
         }
-        tap.load()
-        tap.play()
+        playSound(tap, 500)
         cell.classList.add('row-col-highlight')
       }
     })
@@ -777,17 +797,14 @@ function setToast(type, ship, e) {
     new Toast().show(`${thisPlayer} WINS!`, threeDelay)
     setTimeout(() => {
       if (activeBoard === 'opponent-board') {
-        win.load()
-        win.play()
+        playSound(win, 500)
       } else {
-        lose.load()
-        lose.play()
+        playSound(lose, 500)
       }
     }, oneDelay)
 
   } else {
-    invalid.load()
-    invalid.play()
+    playSound(invalid, 500)
     new Toast().show(`Invalid Selection:<br>Try again...`, oneDelay, twoDelay)
   }
 }
@@ -799,8 +816,7 @@ function setToast(type, ship, e) {
 function fire(e) {
   //disable interaction
   disable(1)
-  click.load()
-  click.play()
+  playSound(click, 500)
 
   // computer turn
   if (activeBoard === 'player-board') {
@@ -812,8 +828,7 @@ function fire(e) {
       playerState[e.id] = -1
       setToast('hit')
       setTimeout(() => {
-        boom.load()
-        boom.play()
+        playSound(boom, 500)
         renderShot(e, 'hit')
         setScore('hit')
       }, oneDelay)
@@ -823,8 +838,7 @@ function fire(e) {
       if (getShip[1] === 'destroyed') {
         setToast('destroy', getShip[0])
         setTimeout(() => {
-          sink.load()
-          sink.play()
+          playSound(sink, 500)
           setScore('destroy')
         }, oneDelay)
       }
@@ -837,8 +851,7 @@ function fire(e) {
     // if already selected
     } else if (playerState[e.id] === -1 || 
       playerState[e.id] === 2) {
-        invalid.load()
-        invalid.play()
+        playSound(invalid, 500)
         setToast('Invalid selection... Try again')
         disable(0)
       return false
@@ -847,8 +860,7 @@ function fire(e) {
       playerState[e.id] = 2
       setToast('miss')
       setTimeout(() => {
-        splash.load()
-        splash.play()
+        playSound(splash, 500)
         renderShot(e, 'miss')
         setScore('miss')
       }, oneDelay)
@@ -864,8 +876,7 @@ function fire(e) {
       opponentState[e.id] = -1
       setToast('hit')
       setTimeout(() => {
-        boom.load()
-        boom.play()
+        playSound(boom, 500)
         renderShot(e, 'hit')
         setScore('hit')
       }, oneDelay)
@@ -874,8 +885,7 @@ function fire(e) {
       if (getShip[1] === 'destroyed') {
         setToast('destroy', getShip[0])
         setTimeout(() => {
-          sink.load()
-          sink.play()
+          playSound(sink, 500)
           setShipStatus(getShip[0])
           setScore('destroy')
         }, oneDelay)
@@ -885,8 +895,7 @@ function fire(e) {
 
     } else if (opponentState[e.id] === -1 || 
               opponentState[e.id] === 2) {
-      invalid.load()
-      invalid.play()
+      playSound(invalid, 500)
       setToast('Invalid selection... Try again')
       disable(0)
       return false
@@ -894,8 +903,7 @@ function fire(e) {
       opponentState[e.id] = 2
       setToast('miss')
       setTimeout(() => {
-        splash.load()
-        splash.play()
+        playSound(splash, 500)
         renderShot(e, 'miss')
         setScore('miss')
       }, oneDelay)
