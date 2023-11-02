@@ -1,21 +1,24 @@
-// todo: Functionality
-  // todo: detect overlapping ship placement
-  // todo: simplify all functions with if(player)else(opponent)
+// Sound Effects by 
+//    <a href="https://pixabay.com/users/soundreality-31074404/?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=171782">Jurij</a> from <a href="https://pixabay.com/sound-effects//?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=171782">Pixabay</a>
+//    <a href="https://pixabay.com/?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=6258">Pixabay</a>
+//    <a href="https://pixabay.com/users/lordsonny-38439655/?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=171285">LordSonny</a> from <a href="https://pixabay.com/sound-effects//?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=171285">Pixabay</a>
+//    <a href="https://pixabay.com/users/666herohero-25759907/?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=21156">666HeroHero</a> from <a href="https://pixabay.com//?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=21156">Pixabay</a>
 
-// todo: DOM
-  // todo: display turn message
-  // todo: fix end game message timing
-  // todo: reset computer stats on game restart
+// todo: Functionality
+  // todo: simplify all functions with if(player)else(opponent)
 
 // todo: Styling
   // todo: add board switch animation
   // todo: fade in/out messages
-
+  // todo: outline sunken ships
+  
 // todo: Bugs
-  // todo: ship selection lost on try again
   // todo: ship selection lost on click (no dir passed)
-  // todo: ship placement issue if release out of bounds
-  // todo: dragging during firing stage breaks board
+  // todo: ship placement issue if mouse released out of bounds
+  // todo: dragging during firing stage applys background color to container
+
+// todo: priority:
+  // todo: fix placement issues (bubbling/out of bounds)
 
 
 //*----- constants -----*//
@@ -63,20 +66,33 @@ let selectedShip // ship placement str
 let initialShipCell // ship placement str
 let shipDirCell // ship placement str
 
-let playerName
-let opponentName
+let playerName // 'name'
+let opponentName // 'name'
 
+// timing delays (ms)
 let introDelay
 let toastDelay
 let oneDelay
 let twoDelay
 let threeDelay
 let fourDelay
+let sixDelay
 
-//! debug
-let showOpponentPieces = true
-let enableComputer = true
-let displayAlerts = true
+let tap
+let click
+let snap
+let boom
+let splash
+let invalid
+let win
+
+//! dev tools
+let autoSelectPlayerPieces = false
+let showOpponentPieces = false
+let showGrid = false
+let disableComputerPlayer = false
+let disableAlerts = false
+let disableTimers = false
 //!
 
 
@@ -96,8 +112,6 @@ const toastContainer = document.querySelector('#toast-container')
 
 function applyListeners() {
   largeBoardEl.addEventListener('click', handleBoardEvent)
-  largeBoardEl.addEventListener('mousedown', handleBoardEvent)
-  largeBoardEl.addEventListener('mouseup', handleBoardEvent)
   largeBoardEl.addEventListener('mouseover', handleBoardEvent)
   largeBoardEl.addEventListener('mouseleave', handleBoardEvent)
 }
@@ -118,15 +132,15 @@ function removeShipListeners() {
   playerShipsEl.removeEventListener('mouseleave', handleShipEvent)
 }
 
-function addInitListeners() {
+function applySelectionListeners() {
   largeBoardEl.addEventListener('click', renderShipSelection)
-  largeBoardEl.addEventListener('mousedown', renderShipSelection)
   largeBoardEl.addEventListener('mouseup', renderShipSelection)
+  largeBoardEl.addEventListener('mousedown', renderShipSelection)
 }
-function removeInitListeners() {
+function removeSelectionListeners() {
   largeBoardEl.removeEventListener('click', renderShipSelection)
-  largeBoardEl.removeEventListener('mousedown', renderShipSelection)
   largeBoardEl.removeEventListener('mouseup', renderShipSelection)
+  largeBoardEl.removeEventListener('mousedown', renderShipSelection)
 }
 
 
@@ -136,13 +150,18 @@ function removeInitListeners() {
 class CreateCell {
   constructor(id, cls, text='') {
     this.el = document.createElement('div')
-    this.el.setAttribute('id', id)
+    if (id) this.el.setAttribute('id', id)
+    if (showGrid && !id.includes('_')) this.el.innerText = text
     this.el.classList.add(cls)
     this.el.classList.add('center')
   }
 }
 
 
+// create visual notification containing
+// msg = message to appear inside container
+// delay = time before message disappears
+// timeout = time before message appears
 class Toast {
   constructor() {
     this.el = document.createElement('div')
@@ -150,7 +169,7 @@ class Toast {
   }
 
   show(msg, delay = 0, timeout = toastDelay) {
-    if (!displayAlerts) return
+    if (disableAlerts) return
     setTimeout(() => {
       this.el.innerHTML = msg
       this.el.classList.add('show')
@@ -158,7 +177,6 @@ class Toast {
       
       setTimeout(() => { this.hide() }, timeout)
     }, delay)
-    
   }
 
   hide() {
@@ -171,6 +189,7 @@ class Toast {
 
 init()
 
+// set up initial game states
 function init() {
   playerName = 'Player'
   opponentName = 'Computer'
@@ -190,12 +209,14 @@ function init() {
 
   introDelay = 2010
   toastDelay = 3000
+  halfDelay = 500
   oneDelay = 1000
   twoDelay = 2000
   threeDelay = 3000
   fourDelay = 4000
+  sixDelay = 6000
   
-  
+  setShipStatus('', 1)
   renderStats(1)
   clearBoards()
   renderBoard(playerBoardEl)
@@ -203,23 +224,40 @@ function init() {
   renderBoard(opponentBoardEl)
   applyShipListeners()
 
+  tap = new Audio('/res/sound/tap.mp3')
+  click = new Audio('/res/sound/click.mp3')
+  snap = new Audio('/res/sound/snap.mp3')
+  boom = new Audio('/res/sound/boom.mp3')
+  sink = new Audio('/res/sound/sink.mp3')
+  splash = new Audio('/res/sound/splash.mp3')
+  splash.volume = 0.6
+  invalid = new Audio('/res/sound/invalid.mp3')
+  win = new Audio('/res/sound/win.mp3')
+  lose = new Audio('/res/sound/lose.mp3')
+  
+
   //! debug
-  // setShip('carrier', 'b5', 'w')
-  // setShip('battleship', 'f8', 'n')
-  // setShip('cruiser', 'g4', 's')
-  // setShip('sub', 'i9', 'w')
-  // setShip('destroyer', 'f6', 'n')
-
-  // introDelay = 0
-  // toastDelay = 1000
-  // oneDelay = 0
-  // twoDelay = 0
-  // threeDelay = 0
-  // fourDelay = 0
-
+  if (autoSelectPlayerPieces) {
+    setShip('carrier', 'b5', 'w')
+    setShip('battleship', 'f8', 'n')
+    setShip('cruiser', 'g4', 's')
+    setShip('sub', 'i9', 'w')
+    setShip('destroyer', 'f6', 'n')
+  }
+  if (disableTimers) {
+    introDelay = 0
+    toastDelay = 1000
+    halfDelay = 0
+    oneDelay = 0
+    twoDelay = 0
+    threeDelay = 0
+    fourDelay = 0
+    sixDelay = 0
+  }
   //!
 
-  new Toast().show(`Welcome to Battleship!`, 500, 3000)
+  // display initial welcome messages
+  new Toast().show(`Welcome to Battleship!`, halfDelay, threeDelay)
   setTimeout(() => {
     new Toast().show(`
     <h3> Ship Setup </h3>
@@ -231,10 +269,11 @@ function init() {
   beginTurn()
 }
 
+// initialize first turn
+// determine if ships have been places
+// if ships remain for placement, 
 function beginTurn() {
   if (activeBoard === 'opponent-board') setTurn()
-
-  
 
   let shipsLen = 0
   for (const ship in playerState.ships) {
@@ -247,18 +286,19 @@ function beginTurn() {
     clearBoards('ships')
     renderStats()
     removeShipListeners()
-    removeInitListeners()
+    removeSelectionListeners()
     applyListeners()
     setTurn()
     setComputerBoard()
   }  
 }
 
-
 //*----- handlers -----*//
 
 function handleBoardEvent(e) {
-  if (e.type === 'click' && !e.target.id.includes('wrapper')) fire(e.target)
+  if (e.type === 'click' && 
+      !e.target.id.includes('wrapper') &&
+      !e.target.id.includes('board')) { fire(e.target) }
 
   if (e.type === 'mouseover' && !e.target.id.includes('wrapper')) {
     renderCellHighlights(1, e)
@@ -271,10 +311,9 @@ function handleBoardEvent(e) {
 
 function handleShipEvent(e) {
   if (!e.target.id.includes('wrapper')) {
+    
     if (e.type === 'mouseover') {
-
       clearShipHighlights()
-
       const el = document.querySelector(`#${e.target.id}`)
       el.classList.add('over')
     }
@@ -300,16 +339,18 @@ function handleShipEvent(e) {
 
 function renderShipSelection(e) {
   if (e.target.id.includes('player') && !e.target.id.includes('wrapper')) {
-    removeListeners()
-    addInitListeners()
+    click.load()
+    click.play()
+
     selectedShip = e.target.id.split('-')[1]
+    removeListeners()
+    applySelectionListeners()
 
   } else if (!initialShipCell && !e.target.id.includes('wrapper')) {
     initialShipCell = e.target.id
 
   } else if (!shipDirCell && !e.target.id.includes('wrapper')) {
     shipDirCell = e.target.id
-
     let startRow = initialShipCell.split('')[0]
     let startCol = parseInt(initialShipCell.slice(1))
     startRow = startRow.charCodeAt(0) // a - j: 97 - 106
@@ -329,10 +370,16 @@ function renderShipSelection(e) {
     }
     
     if (selectedShip && initialShipCell && setShip(selectedShip, initialShipCell, dir)) {
+      snap.load()
+      snap.play()
       new Toast().show(`${selectedShip} assigned`)
+      switchHighlight()  
       shipEl = document.querySelector(`#player-${selectedShip}`)
       clearBoards(shipEl)
     } else {
+      invalid.load()
+      invalid.play()
+      switchHighlight()
       new Toast().show('invalid placement. try again')
     }
 
@@ -341,6 +388,20 @@ function renderShipSelection(e) {
     initialShipCell = ''
     shipDirCell = ''
     beginTurn()
+  }
+
+
+  if (e.target.parentNode.id.includes('ships-wrapper')) {
+    switchHighlight(e)
+    new Toast().show(`placing ${selectedShip}`, 0, twoDelay)
+  }
+  
+  function switchHighlight(e) {
+    const ships = document.querySelectorAll('#player-ships-wrapper div')
+    ships.forEach((el) => {
+      el.classList.remove('selected')
+    })
+    if (e) e.target.classList.add('selected')
   }
 }
 
@@ -403,7 +464,8 @@ function renderCellHighlights(type, e) {
             cell.id.split('')[0] !== currentRow) {
               return
         }
-        
+        tap.load()
+        tap.play()
         cell.classList.add('row-col-highlight')
       }
     })
@@ -418,10 +480,14 @@ function renderCellHighlights(type, e) {
 
 function renderShot(cell, type) {
   if (type === 'hit') {
-    cell.classList.remove('placed')
-    cell.classList.add('hit')
+    const peg = new CreateCell('', 'hit')
+    cell.appendChild(peg.el)
+    // cell.classList.remove('placed')
+    // cell.classList.add('hit')
   } else if (type === 'miss') {
-    cell.classList.add('miss')
+    const peg = new CreateCell('', 'miss')
+    cell.appendChild(peg.el)
+    // cell.classList.add('miss')
   }
 }
 
@@ -527,6 +593,12 @@ function getComputerChoice() {
   return output
 }
 
+function getGrid(cell) {
+  let currentRow = cell.split('')[0]
+  let currentCol = parseInt(cell.slice(1))
+  let currentChar = currentRow.charCodeAt(0)
+  return [currentRow, currentCol, currentChar]
+}
 
 //*----- setters -----*//
 
@@ -537,15 +609,17 @@ function getComputerChoice() {
 // ('battleship', 'i9', 'n')
 function setShip(ship, cell, direction) {
   const currentCell = document.querySelector(`#${activeBoard} #${cell}`)
-  let currentRow = cell.split('')[0]
-  let currentCol = parseInt(cell.slice(1))
-  let currentChar = currentRow.charCodeAt(0) // a - j: 97 - 106
+  let currentRow = getGrid(cell)[0]
+  let currentCol = getGrid(cell)[1]
+  let currentChar = getGrid(cell)[2]
   let cellRange = []
   let nextCellEl
   let nextCell
 
-  let valid = isValid(ship, direction, currentChar, currentCol)
-  if (!valid) return false
+  const overlap = isOverlap(ship, cell, direction)
+  const valid = isValid(ship, direction, currentChar, currentCol)
+
+  if (!valid || overlap) return false
 
   // set up initial cell
   if (activeBoard === 'player-board') {
@@ -600,21 +674,22 @@ function setComputerBoard() {
   let posArr = []
   for (let ship in ships) {
     let valid = false
-    let overlap = false
+    let overlap = true
 
-    while (!valid && !overlap) {
+    while (!valid || overlap) {
       let randomRow = getRandomData()[0]
       let randomCol = getRandomData()[1]
       let randomDir = getRandomData()[2]
+      let rowChar = String.fromCharCode(randomRow)
       valid = isValid(ship, randomDir, randomRow, randomCol)
-      overlap = isOverlap(posArr)
+      overlap = isOverlap(ship, rowChar + randomCol, randomDir)
+
+      
       if (valid && !overlap) {
-        setShip(ship, String.fromCharCode(randomRow) + randomCol, randomDir)
+        setShip(ship, rowChar + randomCol, randomDir)
       }
     }
-    posArr = posArr.concat(opponentState.ships[ship])
   }
-  // console.log(posArr)
   initialize = false
 }
 
@@ -624,7 +699,7 @@ function setTurn() {
   if (activeBoard === 'player-board') {
     smallBoardEl.appendChild(opponentBoardEl)
     largeBoardEl.appendChild(playerBoardEl)
-    if (enableComputer) {
+    if (!disableComputerPlayer) {
       setTimeout(() => {
         const targetCell = playerBoardEl.querySelector(`#${getComputerChoice()}`)
         if (!initialize) fire(targetCell)
@@ -636,6 +711,7 @@ function setTurn() {
       disable(0)
     }
   } else {
+    new Toast().show(`PLAYER'S TURN`)
     smallBoardEl.appendChild(playerBoardEl)
     largeBoardEl.appendChild(opponentBoardEl)
   }
@@ -645,8 +721,8 @@ function setTurn() {
 function setShipStatus(ship, reset) {
   const remainingEl = document.querySelector('#opponent-remaining')
   if (reset) {
-    const ships = document.querySelectorAll('#opponent-ships > div > div')
-    for (let shipEl in ships) {
+    const ships = document.querySelectorAll('#opponent-ships div div')
+    for (let shipEl of ships) {
       shipEl.classList.remove('sunk')
     }
     remainingEl.innerText = "Ships Remaining: 5"
@@ -661,12 +737,14 @@ function setShipStatus(ship, reset) {
 // type = hit/miss/shipname
 function setScore(type) {
   if (activeBoard !== 'player-board') {
-    scores.shots++
+    
     switch (type) {
       case 'hit':
+        scores.shots++
         scores.hits++
         break
       case 'miss':
+        scores.shots++
         scores.misses++
         break
       default:
@@ -691,24 +769,36 @@ function setToast(type, ship, e) {
     new Toast().show('MISS!', oneDelay, twoDelay)
 
   } else if (type === 'destroy') {
-    new Toast().show(`${otherPlayer}:<br> you sunk my ${ship}`, twoDelay, threeDelay)
+    new Toast().show(`${otherPlayer}:<br> You sunk my ${ship}!`, twoDelay, threeDelay)
 
   } else if (type === 'win') {
     new Toast().show(`${thisPlayer} WINS!`, threeDelay)
+    setTimeout(() => {
+      if (activeBoard === 'opponent-board') {
+        win.load()
+        win.play()
+      } else {
+        lose.load()
+        lose.play()
+      }
+    }, oneDelay)
 
   } else {
+    invalid.load()
+    invalid.play()
     new Toast().show(`Invalid Selection:<br>Try again...`, oneDelay, twoDelay)
   }
 }
 
 // todo: simplify
-// todo: separate concerns
 // fire on target
 // check if hit or miss
 // check for destruction
 function fire(e) {
   //disable interaction
   disable(1)
+  click.load()
+  click.play()
 
   // computer turn
   if (activeBoard === 'player-board') {
@@ -716,9 +806,12 @@ function fire(e) {
 
     // if selection is a hit
     if (playerState[e.id] === 1) {
+
       playerState[e.id] = -1
       setToast('hit')
       setTimeout(() => {
+        boom.load()
+        boom.play()
         renderShot(e, 'hit')
         setScore('hit')
       }, oneDelay)
@@ -728,23 +821,32 @@ function fire(e) {
       if (getShip[1] === 'destroyed') {
         setToast('destroy', getShip[0])
         setTimeout(() => {
+          sink.load()
+          sink.play()
           setScore('destroy')
         }, oneDelay)
       }
 
-      // if destruction wins game
-      if (getGameState()) setToast('win')
+      // if destruction win game
+      if (getGameState()) {
+        setToast('win')
+      }
 
     // if already selected
     } else if (playerState[e.id] === -1 || 
       playerState[e.id] === 2) {
+        invalid.load()
+        invalid.play()
         setToast('Invalid selection... Try again')
         disable(0)
       return false
     } else {
+
       playerState[e.id] = 2
       setToast('miss')
       setTimeout(() => {
+        splash.load()
+        splash.play()
         renderShot(e, 'miss')
         setScore('miss')
       }, oneDelay)
@@ -756,9 +858,12 @@ function fire(e) {
 
     // if cell is occupied
     if (opponentState[e.id] === 1) {
+
       opponentState[e.id] = -1
       setToast('hit')
       setTimeout(() => {
+        boom.load()
+        boom.play()
         renderShot(e, 'hit')
         setScore('hit')
       }, oneDelay)
@@ -767,6 +872,8 @@ function fire(e) {
       if (getShip[1] === 'destroyed') {
         setToast('destroy', getShip[0])
         setTimeout(() => {
+          sink.load()
+          sink.play()
           setShipStatus(getShip[0])
           setScore('destroy')
         }, oneDelay)
@@ -776,6 +883,8 @@ function fire(e) {
 
     } else if (opponentState[e.id] === -1 || 
               opponentState[e.id] === 2) {
+      invalid.load()
+      invalid.play()
       setToast('Invalid selection... Try again')
       disable(0)
       return false
@@ -783,13 +892,17 @@ function fire(e) {
       opponentState[e.id] = 2
       setToast('miss')
       setTimeout(() => {
+        splash.load()
+        splash.play()
         renderShot(e, 'miss')
         setScore('miss')
       }, oneDelay)
     }
   }
   if (getGameState()) {
-    init()
+    setTimeout(() => {
+      init()
+    }, sixDelay)
   } else {
     setTimeout(() => {
       setTurn()
@@ -823,12 +936,40 @@ function isValid(ship, dir, row, col) {
 
 // todo: complete function
 // check current ship location for overlap
-// ([ship name], [row char number], [column number])
-// (str, int, int)
-// ('battleship', 97, 4)
-function isOverlap(posArr) {
-  // console.log(posArr)
+// 
+// 
+function isOverlap(ship, cell, direction) {
+  let currentRow = getGrid(cell)[0]
+  let currentCol = getGrid(cell)[1]
+  let currentChar = getGrid(currentRow)[2]
+  let currentPos = [cell]
+
+  for (let i = 0; i < ships[ship] - 1; i++) {
+    if (direction === 'n') {
+        currentChar -= 1
+    } else if (direction === 'e') {
+        currentCol += 1
+    } else if (direction === 's') {
+        currentChar += 1
+    } else if (direction === 'w') {
+        currentCol -= 1
+    }
+    currentPos.push(String.fromCharCode(currentChar) + currentCol)
+  }
+  
+  const noOverlap = currentPos.every((currentCell) => {
+    if (activeBoard === 'player-board') {
+      return playerState[currentCell] === 0 && 
+              playerState[currentCell] !== undefined
+    } else {
+      return opponentState[currentCell] === 0 && 
+              opponentState[currentCell] !== undefined
+    }
+  })
+
+  return (noOverlap) ? false : true
 }
+
 
 
 // todo: simplify
