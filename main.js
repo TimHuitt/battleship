@@ -1,14 +1,22 @@
-// todo: Functionality
-  // todo: simplify all functions with if(player)else(opponent)
 
-// todo: Styling
-  // todo: add board switch animation
-  // todo: fade in/out messages
-  // todo: outline sunken ships
-  
-// todo: Bugs
-  // todo: ship selection lost on click (error: no dir passed)
-  // todo: ship placement issue if mouse released out of bounds
+
+//! dev tools
+let autoSelectPlayerPieces = true
+let showOpponentPieces = true
+let showGrid = false
+let disableComputerPlayer = false
+let disableAlerts = false
+let disableTimers = false
+let disableSounds = false
+
+function dev() {
+  autoSelectPlayerPieces = true
+  showOpponentPieces = true
+  showGrid = true
+  disableTimers = true
+  init()
+}
+//!
 
 
 //*----- constants -----*//
@@ -68,6 +76,7 @@ let threeDelay
 let fourDelay
 let sixDelay
 
+// sounds
 let tap
 let click
 let snap
@@ -75,17 +84,6 @@ let boom
 let splash
 let invalid
 let win
-
-//! dev tools
-let autoSelectPlayerPieces = false
-let showOpponentPieces = false
-let showGrid = false
-let disableComputerPlayer = false
-let disableAlerts = false
-let disableTimers = false
-let disableSounds = false
-//!
-
 
 //*----- cached elements  -----*//
 
@@ -137,7 +135,7 @@ function removeSelectionListeners() {
 
 //*----- classes -----*//
 
-// create new cells with the passed id, class, and inner text
+// create new cells with the passed id, class, and centered
 class CreateCell {
   constructor(id, cls, text='') {
     this.el = document.createElement('div')
@@ -149,7 +147,7 @@ class CreateCell {
 }
 
 
-// create visual notification containing
+// create visual notification containing:
 // msg = message to appear inside container
 // delay = time before message appears
 // timeout = time before message disappears
@@ -262,9 +260,7 @@ function init() {
   beginTurn()
 }
 
-// initialize first turn
-// determine if ships have been places
-// if ships remain for placement, 
+// initialize first turn when all ships have been placed
 function beginTurn() {
   if (activeBoard === 'opponent-board') setTurn()
 
@@ -366,7 +362,10 @@ function renderShipSelection(e) {
   // select ship end position
   // determine direction
   } else if (!shipDirCell && !e.target.id.includes('wrapper')) {
+    // return for 'click'
     if (!initialShipCell || initialShipCell === e.target.id) return
+
+    // get selection direction
     shipDirCell = e.target.id
     let startRow = initialShipCell.split('')[0]
     let startCol = parseInt(initialShipCell.slice(1))
@@ -393,6 +392,7 @@ function renderShipSelection(e) {
       switchHighlight()  
       shipEl = document.querySelector(`#player-${selectedShip}`)
       clearBoards(shipEl)
+
     // ship placement failure
     } else {
       playSound(invalid, 500)
@@ -412,6 +412,7 @@ function renderShipSelection(e) {
     new Toast().show(`placing ${selectedShip}`, 0, twoDelay)
   }
   
+  // add/remove ship highlight during selection
   function switchHighlight(e) {
     const ships = document.querySelectorAll('#player-ships-wrapper div')
     ships.forEach((el) => {
@@ -421,6 +422,7 @@ function renderShipSelection(e) {
   }
 }
 
+// add player ships to player ship container
 function renderPlayerShips() {
   let count = 0
   for (const ship in ships) {
@@ -436,6 +438,7 @@ function renderPlayerShips() {
   }
 }
 
+// add 100 cells to passed element
 function renderBoard(e) {
   row = 97
   currentCol = 1
@@ -493,21 +496,18 @@ function renderCellHighlights(type, e) {
   }
 }
 
+// add hit or miss 'peg' to selected cell
 function renderShot(cell, type) {
   if (type === 'hit') {
     const peg = new CreateCell('', 'hit')
     cell.appendChild(peg.el)
-    // cell.classList.remove('placed')
-    // cell.classList.add('hit')
   } else if (type === 'miss') {
     const peg = new CreateCell('', 'miss')
     cell.appendChild(peg.el)
-    // cell.classList.add('miss')
   }
 }
 
-
-// set player stats in ship container
+// setup player stats in ship container
 // 1 = reset
 function renderStats(reset) {
   var children = playerShipsEl.querySelectorAll('div')
@@ -535,66 +535,37 @@ function renderStats(reset) {
 
 //*----- getters -----*//
 
-// todo: simplify
-// check if game has ended
+// check for end game conditions
 function getGameState() {
   let gameState = 0
   
-  if (activeBoard === 'opponent-board') {
-    for (let ship in opponentState.ships) {
-      const shipState = opponentState.ships[ship].every((cell) => opponentState[cell] === -1)
-      if (shipState) gameState++
-    }
-  } else {
-    for (let ship in playerState.ships) {
-      const shipState = playerState.ships[ship].every((cell) => playerState[cell] === -1)
-      if (shipState) gameState++
-    }
+  for (let ship in getBoard().ships) {
+    const shipState = getBoard().ships[ship].every((cell) => getBoard()[cell] === -1)
+    if (shipState) gameState++
   }
 
   if (gameState === 5) {
     return true
   }
-
   return false
 }
 
-// todo: simplify
 // returns struck ship and whether it is hit or destroyed
 function getShipState(e) {
-  if (activeBoard === 'player-board') {
-    for (let ship in playerState.ships) {
-      if (playerState.ships[ship].includes(e.id)) {
-        const isSunk = playerState.ships[ship].every((cell) => playerState[cell] === -1)
+  const ships = getBoard().ships
 
-        if (isSunk) {
-          return [ship, 'destroyed']
-        }
-        return [ship, 'hit']
-      }
-    }   
-  } else {
-    for (let ship in opponentState.ships) {
-      const isSunk = opponentState.ships[ship].every((cell) => opponentState[cell] === -1)
-      
-      if (opponentState.ships[ship].includes(e.id)) {
-        if (isSunk) {
-          return [ship, 'destroyed']
-        }
-        return [ship, 'hit']
-      }
-      
+  // search active user ships for existing ship
+  // return ship name and status
+  for (const ship in ships) {
+    if (ships[ship].includes(e.id)) {
+      const isSunk = ships[ship].every(cell => getBoard()[cell] === -1)
+      return [ship, isSunk ? 'destroyed' : 'hit']
     }
   }
 }
 
-function getRandomData() {
-  let randomRow = Math.floor(Math.random() * (106-97) + 97)
-  let randomCol = Math.floor(Math.random() * (10 - 1) + 1)
-  let randomDir = ['n', 'e', 's', 'w'][Math.floor(Math.random() * 4)]
-  return [randomRow, randomCol, randomDir]
-}
-
+// get random computer choice and
+// determine validity
 function getComputerChoice() {
   let valid = false
 
@@ -603,17 +574,35 @@ function getComputerChoice() {
     let row = String.fromCharCode(input[0])
     let col = input[1]
     output = row + col
-    if (playerState[output] === 1 || playerState[output] === 0) valid = true
+    if (playerState[output] === 1 || 
+        playerState[output] === 0) {
+      valid = true
+    }
   }
   return output
 }
 
+// breaks down selected cell element
+// row, column, row ASCII code
 function getGrid(cell) {
   let currentRow = cell.split('')[0]
   let currentCol = parseInt(cell.slice(1))
   let currentChar = currentRow.charCodeAt(0)
   return [currentRow, currentCol, currentChar]
 }
+
+// create random cell and direction data
+function getRandomData() {
+  let randomRow = Math.floor(Math.random() * (107-97) + 97)
+  let randomCol = Math.floor(Math.random() * (11 - 1) + 1)
+  let randomDir = ['n', 'e', 's', 'w'][Math.floor(Math.random() * 4)]
+  return [randomRow, randomCol, randomDir]
+}
+
+function getBoard() {
+  return (activeBoard === 'player-board') ? playerState : opponentState
+}
+
 
 //*----- setters -----*//
 
@@ -637,12 +626,11 @@ function setShip(ship, cell, direction) {
   if (!valid || overlap) return false
 
   // set up initial cell
+  getBoard()[cell] = 1
   if (activeBoard === 'player-board') {
     currentCell.classList.add('placed')
-    playerState[cell] = 1
   } else {
     if (showOpponentPieces) currentCell.classList.add('placed')
-    opponentState[cell] = 1
   }
   cellRange.push(cell)
 
@@ -664,22 +652,16 @@ function setShip(ship, cell, direction) {
     nextCell = `${currentRow}${currentCol}`
     cellRange.push(nextCell)
 
+    getBoard()[nextCell] = 1
+    nextCellEl = document.querySelector(`#${activeBoard} #${nextCell}`)
+    
     if (activeBoard === 'player-board') {
-      playerState[nextCell] = 1
-      nextCellEl = document.querySelector(`#${activeBoard} #${nextCell}`)
       nextCellEl.classList.add('placed')
     } else {
-      opponentState[nextCell] = 1
-      nextCellEl = document.querySelector(`#${activeBoard} #${nextCell}`)
       if (showOpponentPieces) nextCellEl.classList.add('placed')
     }
-
   }
-  if (activeBoard === 'player-board') {
-    playerState['ships'][ship] = cellRange
-  } else {
-    opponentState['ships'][ship] = cellRange
-  }
+  getBoard()['ships'][ship] = cellRange
   return true
 }
 
@@ -708,16 +690,10 @@ function setComputerBoard() {
   initialize = false
 }
 
-function getRandomData() {
-  let randomRow = Math.floor(Math.random() * (106-97) + 97)
-  let randomCol = Math.floor(Math.random() * (10 - 1) + 1)
-  let randomDir = ['n', 'e', 's', 'w'][Math.floor(Math.random() * 4)]
-  return [randomRow, randomCol, randomDir]
-}
-
 // toggle current turn
 function setTurn() {
   activeBoard = (activeBoard === 'player-board') ? 'opponent-board' : 'player-board'
+
   if (activeBoard === 'player-board') {
     smallBoardEl.appendChild(opponentBoardEl)
     largeBoardEl.appendChild(playerBoardEl)
@@ -736,10 +712,11 @@ function setTurn() {
     new Toast().show(`PLAYER'S TURN`)
     smallBoardEl.appendChild(playerBoardEl)
     largeBoardEl.appendChild(opponentBoardEl)
+    if (disableComputerPlayer) disable(0)
   }
 }
 
-
+// set/reset opponent ship data
 function setShipStatus(ship, reset) {
   const remainingEl = document.querySelector('#opponent-remaining')
   if (reset) {
@@ -756,6 +733,7 @@ function setShipStatus(ship, reset) {
   }
 }
 
+// sets score in player board
 // type = hit/miss/shipname
 function setScore(type) {
   if (activeBoard !== 'player-board') {
@@ -777,6 +755,7 @@ function setScore(type) {
   updateScores()
 }
 
+// set toasts from grid event handling
 function setToast(type, ship, e) {
   const thisPlayer = (activeBoard.split('-')[0] === 'player') ? opponentName : playerName
   const otherPlayer = (thisPlayer === 'player') ? playerName : opponentName
@@ -809,110 +788,70 @@ function setToast(type, ship, e) {
   }
 }
 
-// todo: simplify
 // fire on target
 // check if hit or miss
 // check for destruction
+// check for win
 function fire(e) {
   //disable interaction
   disable(1)
   playSound(click, 500)
 
   // computer turn
-  if (activeBoard === 'player-board') {
-    setToast('fire')
+  setToast('fire')
 
-    // if selection is a hit
-    if (playerState[e.id] === 1) {
+  // if selection is a hit
+  if (getBoard()[e.id] === 1) {
 
-      playerState[e.id] = -1
-      setToast('hit')
+    getBoard()[e.id] = -1
+    setToast('hit')
+    setTimeout(() => {
+      playSound(boom, 500)
+      renderShot(e, 'hit')
+      setScore('hit')
+    }, oneDelay)
+
+    // if hit destroys a ship
+    const getShip = getShipState(e)
+    if (getShip[1] === 'destroyed') {
+      setToast('destroy', getShip[0])
       setTimeout(() => {
-        playSound(boom, 500)
-        renderShot(e, 'hit')
-        setScore('hit')
-      }, oneDelay)
-
-      // if hit destroys a ship
-      const getShip = getShipState(e)
-      if (getShip[1] === 'destroyed') {
-        setToast('destroy', getShip[0])
-        setTimeout(() => {
-          playSound(sink, 500)
-          setScore('destroy')
-        }, oneDelay)
-      }
-
-      // if destruction win game
-      if (getGameState()) {
-        setToast('win')
-      }
-
-    // if already selected
-    } else if (playerState[e.id] === -1 || 
-      playerState[e.id] === 2) {
-        playSound(invalid, 500)
-        setToast('Invalid selection... Try again')
-        disable(0)
-      return false
-    } else {
-
-      playerState[e.id] = 2
-      setToast('miss')
-      setTimeout(() => {
-        playSound(splash, 500)
-        renderShot(e, 'miss')
-        setScore('miss')
+        playSound(sink, 500)
+        setScore('destroy')
       }, oneDelay)
     }
 
-  // player turn
-  } else {
-    setToast('fire')
+    // if destruction wins game
+    if (getGameState()) {
+      setToast('win')
+    }
 
-    // if cell is occupied
-    if (opponentState[e.id] === 1) {
-
-      opponentState[e.id] = -1
-      setToast('hit')
-      setTimeout(() => {
-        playSound(boom, 500)
-        renderShot(e, 'hit')
-        setScore('hit')
-      }, oneDelay)
-
-      const getShip = getShipState(e)
-      if (getShip[1] === 'destroyed') {
-        setToast('destroy', getShip[0])
-        setTimeout(() => {
-          playSound(sink, 500)
-          setShipStatus(getShip[0])
-          setScore('destroy')
-        }, oneDelay)
-      }
-
-      if (getGameState()) setToast('win')
-
-    } else if (opponentState[e.id] === -1 || 
-              opponentState[e.id] === 2) {
+  // if already selected
+  } else if (getBoard()[e.id] === -1 || 
+  getBoard()[e.id] === 2) {
       playSound(invalid, 500)
       setToast('Invalid selection... Try again')
       disable(0)
-      return false
-    } else {
-      opponentState[e.id] = 2
-      setToast('miss')
-      setTimeout(() => {
-        playSound(splash, 500)
-        renderShot(e, 'miss')
-        setScore('miss')
-      }, oneDelay)
-    }
+    return false
+
+  // if unoccupied
+  } else {
+    getBoard()[e.id] = 2
+    setToast('miss')
+    setTimeout(() => {
+      playSound(splash, 500)
+      renderShot(e, 'miss')
+      setScore('miss')
+    }, oneDelay)
   }
+
+  // if win
   if (getGameState()) {
     setTimeout(() => {
       init()
     }, sixDelay)
+
+  // if not win
   } else {
     setTimeout(() => {
       setTurn()
@@ -924,7 +863,7 @@ function fire(e) {
 
 //*----- tools -----*//
 
-// check if ship orientation is valid
+// check if ship location and orientation is valid
 // ([ship name], [direction letter], [row char number], [column number])
 // (str, str, int, int)
 // ('battleship', 's', 97, 4)
@@ -940,14 +879,10 @@ function isValid(ship, dir, row, col) {
   } else if (dir == 'w' && col - ships[ship] + 1 < 1) {
     return false
   }
-
   return true
 }
 
-// todo: complete function
-// check current ship location for overlap
-// 
-// 
+// check current ship location for overlap if placed
 function isOverlap(ship, cell, direction) {
   let currentRow = getGrid(cell)[0]
   let currentCol = getGrid(cell)[1]
@@ -968,21 +903,14 @@ function isOverlap(ship, cell, direction) {
   }
   
   const noOverlap = currentPos.every((currentCell) => {
-    if (activeBoard === 'player-board') {
-      return playerState[currentCell] === 0 && 
-              playerState[currentCell] !== undefined
-    } else {
-      return opponentState[currentCell] === 0 && 
-              opponentState[currentCell] !== undefined
-    }
+    return getBoard()[currentCell] === 0 && 
+    getBoard()[currentCell] !== undefined
   })
 
   return (noOverlap) ? false : true
 }
 
-
-
-// todo: simplify
+// remove added elements from boards and score card
 function clearBoards(element) {
   if (element === 'ships') {
     playerShips.forEach((cell) => {
@@ -1011,6 +939,7 @@ function clearBoards(element) {
   }
 }
 
+// set updated values to score card
 function updateScores() {
   shots.innerText = scores.shots
   hits.innerText = scores.hits
@@ -1018,6 +947,7 @@ function updateScores() {
   sunk.innerText = scores.sunk
 }
 
+// toggle interaction disabling
 function disable(toggle) {
   if (toggle) {
     body.classList.add('disable')
