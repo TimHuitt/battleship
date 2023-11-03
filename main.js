@@ -1,8 +1,8 @@
 
 
 //! dev tools
-let autoSelectPlayerPieces = true
-let showOpponentPieces = true
+let autoSelectPlayerPieces = false
+let showOpponentPieces = false
 let showGrid = false
 let disableComputerPlayer = false
 let disableAlerts = false
