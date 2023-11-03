@@ -1,8 +1,8 @@
 
 
 //! dev tools
-let autoSelectPlayerPieces = false
-let showOpponentPieces = false
+let autoSelectPlayerPieces = true
+let showOpponentPieces = true
 let showGrid = false
 let disableComputerPlayer = false
 let disableAlerts = false
@@ -818,6 +818,9 @@ function fire(e) {
       setTimeout(() => {
         playSound(sink, 500)
         setScore('destroy')
+        setTimeout(() => {
+          if (activeBoard === 'opponent-board') setShipStatus(getShip[0])
+        }, 1000)
       }, oneDelay)
     }
 
