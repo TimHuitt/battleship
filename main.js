@@ -1,5 +1,3 @@
-
-
 //! dev tools
 let autoSelectPlayerPieces = false
 let showOpponentPieces = false
@@ -8,7 +6,7 @@ let disableComputerPlayer = false
 let disableAlerts = false
 let disableTimers = false
 let disableSounds = false
-
+//test/
 function dev() {
   autoSelectPlayerPieces = true
   showOpponentPieces = true
