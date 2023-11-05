@@ -6,7 +6,7 @@ let disableComputerPlayer = false
 let disableAlerts = false
 let disableTimers = false
 let disableSounds = false
-//test/
+
 function dev() {
   autoSelectPlayerPieces = true
   showOpponentPieces = true
@@ -21,9 +21,10 @@ function dev() {
 
 // save all cells and thier state
 // save ship locations
-// 1 = occupied
-// 0 = empty
-// -1 = hit
+// 2 - empty && hit
+// 1 - occupied
+// 0 - empty
+// -1 - occupied && hit
 const playerStateTemplate = {
   // active ships and their location
   ships: {}
@@ -229,11 +230,33 @@ function init() {
 
   //! debug
   if (autoSelectPlayerPieces) {
-    setShip('carrier', 'b5', 'w')
-    setShip('battleship', 'f8', 'n')
-    setShip('cruiser', 'g4', 's')
-    setShip('sub', 'i9', 'w')
-    setShip('destroyer', 'f6', 'n')
+    // // borders only
+    // setShip('carrier', 'a5', 'w')
+    // setShip('battleship', 'f10', 'n')
+    // setShip('cruiser', 'g1', 's')
+    // setShip('sub', 'j9', 'w')
+    // setShip('destroyer', 'd1', 'n')
+
+    // column only
+    setShip('carrier', 'c2', 's')
+    setShip('battleship', 'd4', 's')
+    setShip('cruiser', 'e6', 's')
+    setShip('sub', 'd8', 's')
+    setShip('destroyer', 'c10', 's')
+
+    // horizontal only
+    // setShip('carrier', 'b5', 'w')
+    // setShip('battleship', 'd5', 'e')
+    // setShip('cruiser', 'f5', 'w')
+    // setShip('sub', 'h5', 'e')
+    // setShip('destroyer', 'j5', 'w')
+
+    // normal
+    // setShip('carrier', 'b5', 'w')
+    // setShip('battleship', 'f8', 'n')
+    // setShip('cruiser', 'g4', 's')
+    // setShip('sub', 'i9', 'w')
+    // setShip('destroyer', 'f6', 'n')
   }
   if (disableTimers) {
     introDelay = 0
@@ -549,34 +572,168 @@ function getGameState() {
 }
 
 // returns struck ship and whether it is hit or destroyed
-function getShipState(e) {
+function getShipState(id, objLen) {
   const ships = getBoard().ships
-
   // search active user ships for existing ship
   // return ship name and status
-  for (const ship in ships) {
-    if (ships[ship].includes(e.id)) {
-      const isSunk = ships[ship].every(cell => getBoard()[cell] === -1)
-      return [ship, isSunk ? 'destroyed' : 'hit']
+  if (objLen) {
+    const ships = playerState.ships
+    for (const ship in ships) {
+      if (ships[ship].includes(id)) {
+        console.log('state:', ship, ships[ship].length, objLen)
+        if (objLen == ships[ship].length) return true
+      }
+    }
+  } else {
+    const ships = getBoard().ships
+    for (const ship in ships) {
+      if (ships[ship].includes(id)) {
+        const isSunk = ships[ship].every(cell => getBoard()[cell] === -1)
+        return [ship, isSunk ? 'destroyed' : 'hit']
+      }
     }
   }
+  return false
 }
 
+let compCells = []
+let attemptCells = []
+let last
+// if hit, save cell
+// if cell and cells.seq, 1 of 2 cells
+// if cell, rng of 4 surrounding cells
+function getPrediction(reset) {
+
+  if (reset) {
+    compCells = []
+    attemptCells = []
+    last = ''
+    return false
+  }
+  let output
+  let options = []
+
+  // if hit
+  if (compCells.length === 1) {
+    // save first possibility
+    if (compCells[0][0] - 1 >= 97) {
+      options.push(String.fromCharCode(compCells[0][0] - 1)) // up one row
+    } else { options.push(0) }
+    // save second possibility
+    if (compCells[0][0] + 1 <= 106) {
+      options.push(String.fromCharCode(compCells[0][0] + 1)) // down one row
+    } else { options.push(0) }
+    // save third possibility
+    if (compCells[0][1] - 1 >= 1) {
+      options.push(compCells[0][1] - 1) // back one column
+    } else { options.push(0) }
+    // save fourth possibility
+    if (compCells[0][1] + 1 <= 10) {
+      options.push(compCells[0][1] + 1) // forward one column
+    } else { options.push(0) }
+    
+    choices =[]
+    if (options[0]) choices.push(options[0] + compCells[0][1])
+    if (options[1]) choices.push(options[1] + compCells[0][1])
+    if (options[2]) choices.push(String.fromCharCode(compCells[0][0]) + options[2])
+    if (options[3]) choices.push(String.fromCharCode(compCells[0][0]) + options[3])
+    output = choices[Math.floor(Math.random() * choices.length)]
+
+  } 
+
+  // if sequence found
+  if (compCells.length > 1) {
+    const seqRow = []
+    const seqCol = []
+
+    for (const cell of compCells) {
+      seqRow.push(cell[0])
+      seqCol.push(cell[1])
+    }
+
+    output = ''
+    let attemptedCells = []
+    const choices = []
+    let choice = []
+    let dir
+
+    if (seqRow[0] === seqRow[1]) dir = 1 // row sequence
+    if (seqCol[0] === seqCol[1]) dir = 0 // column sequence
+
+    if (!dir) {
+      compCells.sort((a, b) => a[0] - b[0])
+    } else {
+      compCells.sort((a, b) => a[1] - b[1])
+    }
+    
+
+    // get upper and lower bands
+    choices.push(compCells[0][dir] - 1)
+    choices.push(compCells[compCells.length - 1][dir] + 1)
+
+    if (dir) {
+        attemptedCells.push(choice)
+        choice = [compCells[0][0], choices[Math.floor(Math.random() * 2)]]
+        output = String.fromCharCode(compCells[0][0]) + choice[1]
+        
+      
+    } else {
+        attemptedCells.push(choice)
+        choice = [choices[Math.floor(Math.random() * 2)], compCells[0][1]]
+        output = String.fromCharCode(choice[0]) + compCells[0][1]
+        
+    }
+
+    // if (!isValid(output) && !isOverlap(output)) return false
+   
+    let objLen = 0
+    compCells.forEach(() => objLen++)
+    console.log('pred:', last, objLen)
+    if (output && getShipState(last, objLen)) {
+      getPrediction(1)
+    }
+    last = output
+  }
+  return (output) ? output : false
+}
+
+
+
 // get random computer choice and
-// determine validity
+// determine validity of cell choice
 function getComputerChoice() {
   let valid = false
+  let prediction
+  let input
+  let row
+  let col
+  let invalid = 0
 
-  while (!valid) {
-    let input = getRandomData()
-    let row = String.fromCharCode(input[0])
-    let col = input[1]
-    output = row + col
-    if (playerState[output] === 1 || 
-        playerState[output] === 0) {
-      valid = true
+    while (!valid) {
+      prediction = getPrediction()
+      const input = getRandomData()
+      if (prediction && invalid < 20) {
+        output = prediction
+        row = prediction.split('')[0]
+        col = parseInt(prediction.slice(1))
+      } else {
+        row = String.fromCharCode(input[0])
+        col = input[1]
+        output = row + col
+      }
+      if (playerState[output] === 1 || 
+          playerState[output] === 0) {
+        if (playerState[output] === 1) { 
+          compCells.push([row.charCodeAt(0), col])
+        }
+        valid = true
+        invalid = 0
+      } else {
+        invalid++
+        if (invalid === 19) {getPrediction(1)}
+      }
     }
-  }
+
   return output
 }
 
@@ -810,7 +967,7 @@ function fire(e) {
     }, oneDelay)
 
     // if hit destroys a ship
-    const getShip = getShipState(e)
+    const getShip = getShipState(e.id)
     if (getShip[1] === 'destroyed') {
       setToast('destroy', getShip[0])
       setTimeout(() => {
