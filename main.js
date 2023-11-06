@@ -7,7 +7,7 @@ function dev() {
 }
 
 //! dev tools
-let showOpponentPieces = false
+let showOpponentPieces = true
 let showGrid = false
 let disableComputerPlayer = false
 let disableAlerts = false
@@ -1014,7 +1014,7 @@ function fire(e) {
   } else {
     setTimeout(() => {
       setTurn()
-    }, twoDelay)
+    }, threeDelay)
   }
   return true
 }
