@@ -171,6 +171,7 @@ main {
   font-size: 3vmin;
   text-align: center;
   color: var(--green);
+  pointer-events: none;
 }
 .cell {
   border: 1px solid var(--darkgreen);

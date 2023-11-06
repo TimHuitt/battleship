@@ -1,5 +1,12 @@
+
+//! use dev() in browser to enable quick game settings
+function dev() {
+  showOpponentPieces = true
+  disableTimers = true
+  init()
+}
+
 //! dev tools
-let autoSelectPlayerPieces = false
 let showOpponentPieces = false
 let showGrid = false
 let disableComputerPlayer = false
@@ -7,13 +14,9 @@ let disableAlerts = false
 let disableTimers = false
 let disableSounds = false
 
-function dev() {
-  autoSelectPlayerPieces = true
-  showOpponentPieces = true
-  showGrid = true
-  disableTimers = true
-  init()
-}
+// auto select may break end/restart
+// choose a layout below in 'preset board selections'
+let autoSelectPlayerPieces = false
 //!
 
 
@@ -84,6 +87,12 @@ let splash
 let invalid
 let win
 
+// computer player
+let compCells = []
+let attemptCells = []
+let last
+
+
 //*----- cached elements  -----*//
 
 const body = document.querySelector('body')
@@ -144,7 +153,6 @@ class CreateCell {
     this.el.classList.add('center')
   }
 }
-
 
 // create visual notification containing:
 // msg = message to appear inside container
@@ -227,8 +235,7 @@ function init() {
     lose = new Audio('./res/sounds/lose.mp3')
   }
   
-
-  //! debug
+  //! dev: preset board selections
   if (autoSelectPlayerPieces) {
     // // borders only
     // setShip('carrier', 'a5', 'w')
@@ -238,13 +245,13 @@ function init() {
     // setShip('destroyer', 'd1', 'n')
 
     // column only
-    setShip('carrier', 'c2', 's')
-    setShip('battleship', 'd4', 's')
-    setShip('cruiser', 'e6', 's')
-    setShip('sub', 'd8', 's')
-    setShip('destroyer', 'c10', 's')
+    // setShip('carrier', 'c2', 's')
+    // setShip('battleship', 'd4', 's')
+    // setShip('cruiser', 'e6', 's')
+    // setShip('sub', 'd8', 's')
+    // setShip('destroyer', 'c10', 's')
 
-    // horizontal only
+    // row only
     // setShip('carrier', 'b5', 'w')
     // setShip('battleship', 'd5', 'e')
     // setShip('cruiser', 'f5', 'w')
@@ -252,12 +259,13 @@ function init() {
     // setShip('destroyer', 'j5', 'w')
 
     // normal
-    // setShip('carrier', 'b5', 'w')
-    // setShip('battleship', 'f8', 'n')
-    // setShip('cruiser', 'g4', 's')
-    // setShip('sub', 'i9', 'w')
-    // setShip('destroyer', 'f6', 'n')
+    setShip('carrier', 'b5', 'w')
+    setShip('battleship', 'f8', 'n')
+    setShip('cruiser', 'g4', 's')
+    setShip('sub', 'i9', 'w')
+    setShip('destroyer', 'f6', 'n')
   }
+
   if (disableTimers) {
     introDelay = 0
     toastDelay = 1000
@@ -278,6 +286,7 @@ function init() {
     <p>2. Drag to place</p>
     `, introDelay)
 
+  getPrediction(1)
   beginTurn()
 }
 
@@ -580,7 +589,6 @@ function getShipState(id, objLen) {
     const ships = playerState.ships
     for (const ship in ships) {
       if (ships[ship].includes(id)) {
-        console.log('state:', ship, ships[ship].length, objLen)
         if (objLen == ships[ship].length) return true
       }
     }
@@ -596,9 +604,6 @@ function getShipState(id, objLen) {
   return false
 }
 
-let compCells = []
-let attemptCells = []
-let last
 // if hit, save cell
 // if cell and cells.seq, 1 of 2 cells
 // if cell, rng of 4 surrounding cells
@@ -688,7 +693,6 @@ function getPrediction(reset) {
    
     let objLen = 0
     compCells.forEach(() => objLen++)
-    console.log('pred:', last, objLen)
     if (output && getShipState(last, objLen)) {
       getPrediction(1)
     }
@@ -696,8 +700,6 @@ function getPrediction(reset) {
   }
   return (output) ? output : false
 }
-
-
 
 // get random computer choice and
 // determine validity of cell choice
@@ -733,7 +735,6 @@ function getComputerChoice() {
         if (invalid === 19) {getPrediction(1)}
       }
     }
-
   return output
 }
 
@@ -1013,7 +1014,7 @@ function fire(e) {
   } else {
     setTimeout(() => {
       setTurn()
-    }, threeDelay)
+    }, twoDelay)
   }
   return true
 }
