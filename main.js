@@ -7,7 +7,7 @@ function dev() {
 }
 
 //! dev tools
-let showOpponentPieces = true
+let showOpponentPieces = false
 let showGrid = false
 let disableComputerPlayer = false
 let disableAlerts = false
